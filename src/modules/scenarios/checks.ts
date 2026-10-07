@@ -71,7 +71,7 @@ export function exposureFix(c: ShotContext): string {
       const best = bestMetering(c);
       return (
         `La medición ${METERING_INFO[c.s.metering].label.toLowerCase()} se equivoca ${fmtEV(bias)} en esta escena y la cámara obedece: ` +
-        `la foto queda en ${fmtEV(v)}. Pasa a ${METERING_INFO[best].label.toLowerCase()} o compensa ${fmtEV(-v)}.`
+        `la foto queda en ${fmtEV(v)}. Pasa a ${METERING_INFO[best].label.toLowerCase()} o lleva la compensación a ${fmtEV(c.s.exposureComp - v)}.`
       );
     }
     return `La cámara expone según la compensación elegida y la foto queda en ${fmtEV(v)}: lleva la compensación hacia ${fmtEV(c.s.exposureComp - v)}.`;
@@ -321,8 +321,12 @@ export const diffractionCheck: Check = {
         : `A ${formatAperture(c.s.aperture)} el disco de Airy mide ${fmtMicrons(airy)}, ${timesText(airy / c.sensor.cocMm)} el círculo de confusión (${fmtMicrons(c.sensor.cocMm)}): todo se ablanda. Vuelve a f/8–f/11.`,
     };
   },
+  // Criterio didáctico común: desde ~f/11 empieza a suavizar el detalle fino; a f/16–f/22 se nota a tamaño completo.
   why: (c) =>
-    `A ${formatAperture(c.s.aperture)} el disco de Airy mide ${fmtMicrons(airyDiskMm(c.s.aperture))}, ${Math.round((airyDiskMm(c.s.aperture) / c.sensor.cocMm) * 100)} % del círculo de confusión (${fmtMicrons(c.sensor.cocMm)}): la difracción todavía no se nota.`,
+    `A ${formatAperture(c.s.aperture)} el disco de Airy mide ${fmtMicrons(airyDiskMm(c.s.aperture))}, ${Math.round((airyDiskMm(c.s.aperture) / c.sensor.cocMm) * 100)} % del círculo de confusión (${fmtMicrons(c.sensor.cocMm)}): ` +
+    (c.s.aperture >= 10.9
+      ? 'la difracción empieza a suavizar el detalle fino, pero aún compensa por la profundidad ganada.'
+      : 'la difracción todavía no se nota.'),
 };
 
 /* ------------------------------------------------------------------ Astro */
@@ -363,7 +367,7 @@ export const infinityCheck: Check = {
       value: `zona hasta ${formatDistance(c.m.dofFarM)}`,
       fix: pass
         ? ''
-        : `La zona nítida termina en ${formatDistance(c.m.dofFarM)}: las estrellas quedan blandas. Enfoca al infinito con live view ampliado sobre una estrella brillante.`,
+        : `La zona nítida termina en ${formatDistance(c.m.dofFarM)}: las estrellas quedan blandas. Enfoca al infinito con la pantalla en vivo ampliada sobre una estrella brillante.`,
     };
   },
   why: (c) => `Enfocado al infinito la zona nítida va de ${fmtZone(c.m.dofNearM, c.m.dofFarM)}: las estrellas son puntos, no discos.`,

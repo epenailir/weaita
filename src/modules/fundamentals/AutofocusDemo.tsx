@@ -22,6 +22,9 @@ const AF_OPTIONS: Array<{ value: AfMode; label: string }> = [
   { value: 'MF', label: 'MF' },
 ];
 
+/** Intervalo mínimo entre pasos de simulación (~30 fps). */
+const FRAME_MS = 1000 / 30 - 2;
+
 const xOf = (d: number) => 80 + ((d - MIN_D) / (MAX_D - MIN_D)) * 500;
 
 interface SimState {
@@ -44,12 +47,32 @@ export function AutofocusDemo({ mode, onModeChange }: { mode: AfMode; onModeChan
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // Bucle de simulación: mueve al sujeto y aplica la lógica de cada modo de enfoque
+  // Pausa el bucle cuando la demo no está a la vista o la pestaña está oculta
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
+  const [pageHidden, setPageHidden] = useState(() => typeof document !== 'undefined' && document.hidden);
   useEffect(() => {
-    if (!playing) return;
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((entries) => setVisible(entries.some((e) => e.isIntersecting)));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    const on = () => setPageHidden(document.hidden);
+    document.addEventListener('visibilitychange', on);
+    return () => document.removeEventListener('visibilitychange', on);
+  }, []);
+  const running = playing && visible && !pageHidden;
+
+  // Bucle de simulación (~30 fps): mueve al sujeto y aplica la lógica de cada modo de enfoque
+  useEffect(() => {
+    if (!running) return;
     let raf = 0;
     let prev = performance.now();
     const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      if (now - prev < FRAME_MS) return;
       const dt = Math.min(0.05, (now - prev) / 1000);
       prev = now;
       const s = stateRef.current;
@@ -62,6 +85,7 @@ export function AutofocusDemo({ mode, onModeChange }: { mode: AfMode; onModeChan
       if (mode === 'AF-C' || (mode === 'AF-A' && afaSwitched)) {
         // Seguimiento continuo con un pequeño retardo del motor de enfoque
         focus += (subject - focus) * Math.min(1, dt * 14);
+        if (Math.abs(subject - focus) < 1e-3) focus = subject;
       } else if (mode === 'AF-A' && movingFor > 0.35) {
         afaSwitched = true;
       } else if (mode === 'MF') {
@@ -71,12 +95,13 @@ export function AutofocusDemo({ mode, onModeChange }: { mode: AfMode; onModeChan
         focus = subject;
         lockRequest.current = false;
       }
+      // Sin cambios (sujeto quieto, enfoque asentado): no re-renderizar
+      if (t === s.t && subject === s.subject && focus === s.focus && afaSwitched === s.afaSwitched && movingFor === s.movingFor) return;
       setState({ t, subject, focus, afaSwitched, lastSubject: subject, movingFor });
-      raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, moving, mode, manualFocus]);
+  }, [running, moving, mode, manualFocus]);
 
   // Cambiar de modo reinicia el comportamiento de AF-A
   useEffect(() => {
@@ -99,7 +124,7 @@ export function AutofocusDemo({ mode, onModeChange }: { mode: AfMode; onModeChan
   const effectiveMode = mode === 'AF-A' ? (state.afaSwitched ? 'AF-A → AF-C' : 'AF-A → AF-S') : mode;
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+    <div ref={rootRef} className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       <div className="min-w-0 space-y-4">
         {/* Visor: el sujeto se ve nítido o borroso según el plano de enfoque */}
         <div className="relative aspect-[3/2] overflow-hidden rounded-lg border border-line bg-[#1a2430]">

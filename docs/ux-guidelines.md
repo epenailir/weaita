@@ -32,8 +32,14 @@ Síntesis de referencias de simuladores (CameraSim, Canon Outside of Auto, Photo
 
 ## Accesibilidad
 
-- Texto ≥ 4,5:1 y componentes ≥ 3:1. La información nunca depende solo del color: el exposímetro muestra signo y número, y el nivel muestra grados.
+- Texto ≥ 4.5:1 y componentes ≥ 3:1. La información nunca depende solo del color: el exposímetro muestra signo y número, y el nivel muestra grados.
 - Canvas con `role="img"` y `aria-label` dinámico que describe el resultado.
 - `prefers-reduced-motion`: reducir, no eliminar (sin desplazamientos ni zoom; fundidos breves).
 - Objetivos táctiles de al menos 24×24 px (44×44 en móvil para acciones principales). Reflow a 320 px sin desplazamiento horizontal.
 - Idioma `es-419`, tuteo neutro.
+
+## Redacción y números
+
+- **Separador decimal: punto** (`1.5 m`, `±0.5 EV`, `f/1.8`), igual que en las cámaras y en la notación f/.
+- **Separador de miles: espacio fino** que no se corta (U+202F): `16 384 niveles`. Los números de cuatro cifras van sin separador (`4096`, `5500 K`).
+- **Sin anglicismos como sustantivo** cuando hay equivalente claro: hora dorada, fotografía callejera, pantalla en vivo. Si el término inglés ayuda a reconocerlo, va entre paréntesis la primera vez: «hora dorada (golden hour)».

@@ -616,7 +616,7 @@ const SCARF = hex('#3f8c86');
 const TROUSERS = hex('#29313e');
 const SHOES = hex('#14161a');
 
-/** Persona de 1,75 m dibujada de frente (plano a Z = 0, coordenadas locales en metros). */
+/** Persona de 1.75 m dibujada de frente (plano a Z = 0, coordenadas locales en metros). */
 function drawPerson(v: View) {
   const zr = -v.camZ;
   if (zr < 0.3) return;

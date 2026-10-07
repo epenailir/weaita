@@ -283,7 +283,7 @@ export const EXPERIMENTS: Record<ScenarioId, Experiment[]> = {
         observed:
           `La zona nítida pasa de ${fmtDepth(rec.m.dofNearM, rec.m.dofFarM)} a ${fmtDepth(now.m.dofNearM, now.m.dofFarM)} (${fmtZone(now.m.dofNearM, now.m.dofFarM)}) ` +
           `y el barrido del peatón sube a ${fmtPx(now.m.subjectMotionBlurPx)}.`,
-        why: 'La profundidad de campo cae con el cuadrado de la focal. Por eso el street se hace con 28–35 mm: zona amplia y te obliga a acercarte.',
+        why: 'La profundidad de campo cae con el cuadrado de la focal. Por eso la fotografía callejera se hace con 28–35 mm: zona amplia y te obliga a acercarte.',
       }),
     },
     {

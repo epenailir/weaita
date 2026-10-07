@@ -73,7 +73,7 @@ function PredictCard({
               <label
                 key={opt}
                 className={cn(
-                  'flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5 text-[13.5px] leading-snug transition-colors duration-150',
+                  'flex min-h-11 cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5 text-[13.5px] leading-snug transition-colors duration-150',
                   showRight
                     ? 'border-data/50 bg-data-soft text-fg'
                     : showWrong
@@ -215,7 +215,7 @@ export function LessonDeck({ selectedId, onSelect, relevantId, relevantReason, r
         role="tablist"
         aria-label="Lecciones del triángulo de exposición"
         onKeyDown={onKeyDown}
-        className="-mx-4 flex gap-1 overflow-x-auto border-b border-line px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0"
+        className="-mx-4 flex gap-1 overflow-x-auto border-b border-line px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:gap-x-1 lg:gap-y-0 lg:overflow-visible lg:px-0"
       >
         {EXPOSURE_LESSONS.map((l, i) => {
           const active = i === index;
@@ -273,7 +273,7 @@ export function LessonDeck({ selectedId, onSelect, relevantId, relevantReason, r
               </div>
             </div>
 
-            <div className="mt-5 border-t border-line pt-4">
+            <div className="mt-5 border-t border-line pt-2">
               <button
                 type="button"
                 aria-expanded={!!expanded[lesson.id]}
@@ -282,7 +282,7 @@ export function LessonDeck({ selectedId, onSelect, relevantId, relevantReason, r
                   setExpanded((x) => ({ ...x, [lesson.id]: !x[lesson.id] }));
                   markLesson(lesson.id);
                 }}
-                className="inline-flex items-center gap-2 rounded-md text-[13.5px] font-medium text-fg hover:text-amber"
+                className="inline-flex min-h-11 items-center gap-2 rounded-md text-[13.5px] font-medium text-fg hover:text-amber"
               >
                 <BookOpen size={15} aria-hidden="true" className="text-faint" />
                 {expanded[lesson.id] ? 'Ocultar la explicación completa' : 'Leer la explicación completa'}

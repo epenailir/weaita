@@ -58,7 +58,7 @@ export function initialSettings(challenge: Challenge, scene: SimScene): Partial<
     focusM: scene.defaults.focusM,
     wbK: scene.defaults.wbK,
     stabilizationStops: 0,
-    tripod: false,
+    tripod: challenge.tripod ?? false,
   };
 }
 

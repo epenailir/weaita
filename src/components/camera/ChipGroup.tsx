@@ -88,7 +88,7 @@ export function ChipGroup<T extends string>({ label, hideLabel, options, value, 
               {o.icon && <span className={cn('shrink-0', active ? 'text-amber' : 'text-faint')}>{o.icon}</span>}
               <span className="min-w-0">
                 <span className="block truncate">{o.label}</span>
-                {o.detail && <span className="osd block text-[10.5px] font-normal leading-tight text-faint">{o.detail}</span>}
+                {o.detail && <span className={cn('osd block text-[11px] font-normal leading-tight', active ? 'text-muted' : 'text-faint')}>{o.detail}</span>}
               </span>
             </button>
           );

@@ -161,7 +161,7 @@ export function RecipeStrip({ scenario, playbook, recipe, cam, level, solved, pu
                     <span className="flex min-w-0 items-center gap-1.5" aria-hidden="true">
                       <span className="osd truncate text-[14px] font-medium text-fg">{c.value}</span>
                       {c.badge && (
-                        <span className="osd shrink-0 rounded-[3px] border border-amber/40 px-1 text-[9px] font-semibold leading-[14px] text-amber">{c.badge}</span>
+                        <span className="osd shrink-0 rounded-xs border border-amber/40 px-1 text-[11px] font-semibold leading-[14px] text-amber">{c.badge}</span>
                       )}
                     </span>
                     <span className="sr-only">

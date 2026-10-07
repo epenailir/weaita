@@ -242,7 +242,8 @@ function noiseCanvas(): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = 128;
   c.height = 128;
-  const ctx = c.getContext('2d');
+  // En CPU, como las superficies del simulador (ver createSurface): evita copias GPU→CPU al usarla como patrón.
+  const ctx = c.getContext('2d', { willReadFrequently: true });
   if (ctx) {
     const img = ctx.createImageData(128, 128);
     const r = rand(4242);

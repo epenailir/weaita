@@ -35,7 +35,7 @@ export function LabSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-28 border-t border-line pt-10 lg:scroll-mt-20" {...markOnInteraction(id)}>
+    <section id={id} tabIndex={-1} aria-labelledby={`${id}-title`} className="scroll-mt-2 border-t border-line pt-10 focus:outline-none" {...markOnInteraction(id)}>
       <div className="eyebrow mb-2">{eyebrow}</div>
       <h2 id={`${id}-title`} className="text-xl font-semibold md:text-2xl">
         {title}

@@ -34,50 +34,73 @@ function ChallengeCard({
   onOpen: () => void;
 }) {
   const scene = SCENES[challenge.sceneId];
+  const metaId = `challenge-${challenge.id}-meta`;
+  const lockedId = `challenge-${challenge.id}-locked`;
+  const criteriaId = `challenge-${challenge.id}-criteria`;
+  // Tarjeta de área completa: el botón vive dentro del encabezado (que así aparece en la navegación
+  // por encabezados) y su ::after cubre la tarjeta. El nombre accesible sale del texto visible.
   return (
-    <li>
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`Desafío ${number}: ${challenge.title}. ${solved ? 'Superado' : 'Pendiente'}${recommended ? ', recomendado' : ''}. ${challenge.targets.length} ${challenge.targets.length === 1 ? 'criterio' : 'criterios'}. Fijos: ${challenge.locked.length ? challenge.locked.map((p) => PARAM_LABEL[p]).join(', ') : 'ninguno'}.`}
-        className={cn(
-          'group flex h-full w-full flex-col rounded-lg border p-4 text-left transition-colors duration-150',
-          recommended ? 'border-amber/40 bg-panel-2' : 'border-line bg-panel hover:border-line-strong hover:bg-panel-2',
+    <li
+      className={cn(
+        'group relative flex h-full w-full flex-col rounded-lg border p-4 text-left transition-colors duration-150',
+        'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-amber',
+        recommended ? 'border-amber/40 bg-panel-2' : 'border-line bg-panel hover:border-line-strong hover:bg-panel-2',
+      )}
+    >
+      <div id={metaId} className="flex items-center justify-between gap-3">
+        <span className="osd text-[12px] text-faint" aria-hidden="true">
+          #{String(number).padStart(2, '0')}
+        </span>
+        {solved ? (
+          <span className="osd inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-data">
+            <CheckCircle2 size={13} aria-hidden="true" /> Superado
+          </span>
+        ) : recommended ? (
+          <span className="osd inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-amber">
+            <Star size={12} aria-hidden="true" /> Siguiente
+          </span>
+        ) : (
+          <span className="osd inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-faint">
+            <Circle size={12} aria-hidden="true" /> Pendiente
+          </span>
         )}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <span className="osd text-[12px] text-faint">#{String(number).padStart(2, '0')}</span>
-          {solved ? (
-            <span className="osd inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-data">
-              <CheckCircle2 size={13} aria-hidden="true" /> Superado
-            </span>
-          ) : recommended ? (
-            <span className="osd inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-amber">
-              <Star size={12} aria-hidden="true" /> Siguiente
-            </span>
-          ) : (
-            <span className="osd inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-faint">
-              <Circle size={12} aria-hidden="true" /> Pendiente
-            </span>
-          )}
-        </div>
-        <h4 className="mt-2 text-[14.5px] font-semibold leading-snug text-fg">{challenge.title}</h4>
-        <p className="mt-1 text-[12.5px] text-faint">{scene.name}</p>
-        <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-[12px]">
-          <span className="flex min-w-0 items-center gap-1.5 text-muted">
-            <Lock size={12} className="shrink-0 text-faint" aria-hidden="true" />
-            <span className="truncate">{challenge.locked.length ? challenge.locked.map((p) => PARAM_LABEL[p]).join(' · ') : 'Todo libre'}</span>
+      </div>
+      <h4 className="mt-2 text-[14.5px] font-semibold leading-snug text-fg">
+        <button
+          type="button"
+          onClick={onOpen}
+          data-challenge-id={challenge.id}
+          aria-describedby={`${metaId} ${lockedId} ${criteriaId}`}
+          className="text-left focus-visible:outline-none after:absolute after:inset-0 after:rounded-lg after:content-['']"
+        >
+          <span className="sr-only">Desafío {number}: </span>
+          {challenge.title}
+        </button>
+      </h4>
+      <p className="mt-1 text-[12.5px] text-faint">{scene.name}</p>
+      <div className="mt-auto flex items-center justify-between gap-3 pt-4 text-[12px]">
+        <span id={lockedId} className="flex min-w-0 items-center gap-1.5 text-muted">
+          <Lock size={12} className="shrink-0 text-faint" aria-hidden="true" />
+          <span className="truncate">
+            {challenge.locked.length ? (
+              <>
+                <span className="sr-only">Fijos: </span>
+                {challenge.locked.map((p) => PARAM_LABEL[p]).join(' · ')}
+              </>
+            ) : (
+              'Todo libre'
+            )}
           </span>
-          <span className="osd inline-flex shrink-0 items-center gap-1.5 text-muted">
-            {challenge.targets.length} {challenge.targets.length === 1 ? 'criterio' : 'criterios'}
-            <ArrowRight
-              size={13}
-              className="text-faint transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-amber"
-              aria-hidden="true"
-            />
-          </span>
-        </div>
-      </button>
+        </span>
+        <span id={criteriaId} className="osd inline-flex shrink-0 items-center gap-1.5 text-muted">
+          {challenge.targets.length} {challenge.targets.length === 1 ? 'criterio' : 'criterios'}
+          <ArrowRight
+            size={13}
+            className="text-faint transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-amber"
+            aria-hidden="true"
+          />
+        </span>
+      </div>
     </li>
   );
 }

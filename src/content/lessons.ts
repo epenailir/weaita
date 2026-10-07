@@ -203,7 +203,7 @@ export const EXPOSURE_LESSONS: Lesson[] = [
       "La profundidad de campo es la zona, delante y detrás del punto enfocado, que se ve aceptablemente nítida. Depende de la apertura, la distancia de enfoque, la focal y el tamaño en que se mira la foto.",
       "Más profundidad: cerrar el diafragma, alejarte del sujeto o usar una focal más corta. Menos profundidad: abrir, acercarte o usar un tele. A distancias medias hay más zona nítida detrás del punto de enfoque que delante.",
       "La distancia hiperfocal es H ≈ f²/(N·c) + f, con c ≈ 0.03 mm en full frame. Si enfocas a H, todo es nítido desde H/2 hasta el infinito. Con 24 mm a f/11: H ≈ 1.8 m, nítido desde ~0.9 m hasta el infinito.",
-      "El enfoque por zonas en street usa la misma idea: con 35 mm a f/8 y enfoque a 3 m, la zona nítida va de ~1.9 a ~7 m. Disparas sin esperar al autofoco."
+      "El enfoque por zonas en fotografía callejera usa la misma idea: con 35 mm a f/8 y enfoque a 3 m, la zona nítida va de ~1.9 a ~7 m. Disparas sin esperar al autofoco."
     ],
     "keyFacts": [
       "Más profundidad: cerrar, alejarse, focal corta",

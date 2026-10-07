@@ -33,7 +33,6 @@ export function ComparisonStrip({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onSelect(mm)}
-                aria-label={`${formatFocal(mm)}: cámara a ${formatDistance(d)}; los edificios se ven al ${pct(bg)} de su tamaño junto a la persona`}
                 className={cn(
                   'group block w-full overflow-hidden rounded-md border bg-panel text-left transition-colors duration-150',
                   selected ? 'border-amber/70 shadow-[0_0_0_1px_var(--color-amber)]' : 'border-line hover:border-line-strong',
@@ -50,6 +49,7 @@ export function ComparisonStrip({
                   </span>
                   <span className="mt-1.5 block text-[11.5px] text-muted">
                     Fondo al <span className="osd text-data">{pct(bg)}</span>
+                    <span className="sr-only">: los edificios se ven al {pct(bg)} de su tamaño junto a la persona</span>
                   </span>
                 </span>
               </button>

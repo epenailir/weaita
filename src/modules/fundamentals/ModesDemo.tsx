@@ -81,7 +81,7 @@ export function ModesDemo({ mode, onModeChange }: { mode: CameraMode; onModeChan
         <div className="rounded-lg border border-line bg-panel-2 p-4">
           <div className="mb-1 flex items-center gap-2">
             <span className="osd flex h-8 w-8 items-center justify-center rounded-md bg-amber text-lg font-semibold text-ink">{settings.mode}</span>
-            <h4 className="text-[15px] font-semibold">{text.title}</h4>
+            <h3 className="text-[15px] font-semibold">{text.title}</h3>
           </div>
           <p className="text-[13.5px] leading-relaxed text-muted">{text.body}</p>
         </div>

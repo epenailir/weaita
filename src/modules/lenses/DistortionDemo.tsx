@@ -131,7 +131,7 @@ function DistortionChart({ focal, build, onFocal }: { focal: number; build: Lens
         viewBox={`0 0 ${CW} ${CH}`}
         className="block h-auto w-full cursor-crosshair touch-none"
         role="img"
-        aria-label={`Gráfico: la distorsión pasa de barril en gran angular (${formatSignedPercent(distortionK1(14, build) * 100)} a 14 mm) a cojín en tele (${formatSignedPercent(distortionK1(400, build) * 100)} a 400 mm). Los zooms distorsionan 1,8 veces más que los fijos.`}
+        aria-label={`Gráfico: la distorsión pasa de barril en gran angular (${formatSignedPercent(distortionK1(14, build) * 100)} a 14 mm) a cojín en tele (${formatSignedPercent(distortionK1(400, build) * 100)} a 400 mm). Los zooms distorsionan 1.8 veces más que los fijos.`}
         onPointerMove={(e) => setHover(fFromX(toLocal(e)))}
         onPointerLeave={() => setHover(null)}
         onClick={(e) => onFocal(Math.round(fFromX(toLocal(e))))}
@@ -277,7 +277,7 @@ export function DistortionDemo({ build, onBuild }: { build: LensBuild; onBuild: 
 
       <Callout kind="info" title="Distorsión no es lo mismo que perspectiva" className="xl:col-span-2">
         La distorsión de barril o cojín es un defecto del diseño óptico: curva las rectas que no pasan por el centro y es más fuerte en los extremos de los zooms
-        (×1,8 frente a un fijo). Se corrige casi por completo con el <strong>perfil del objetivo</strong>, a cambio de recortar un poco los bordes. En cambio, el
+        (×1.8 frente a un fijo). Se corrige casi por completo con el <strong>perfil del objetivo</strong>, a cambio de recortar un poco los bordes. En cambio, el
         estiramiento de las formas en los bordes de un 14 mm o la convergencia de verticales al inclinar la cámara son <strong>perspectiva</strong>: no los quita
         ningún perfil.
       </Callout>

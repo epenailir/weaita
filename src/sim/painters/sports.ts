@@ -1,5 +1,5 @@
 /**
- * Deporte a pleno sol con teleobjetivo: un jugador corre con la pelota (≈20 m), otros jugadores
+ * Deporte con cielo nublado brillante (EV 13) y teleobjetivo: un jugador corre con la pelota (≈20 m), otros jugadores
  * más atrás, carteles publicitarios en el borde del campo y gradas llenas de público (≈55 m).
  * A 1/2000 s el jugador queda congelado; a 1/60 s se barre en la dirección de la carrera.
  */

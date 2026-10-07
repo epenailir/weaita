@@ -78,7 +78,7 @@ export function FocalExplorer({ focal, onFocal, sensorId, onSensor, mode, onMode
   const cropFrac = FOCAL_MIN_MM / smoothFocal;
 
   const label =
-    `Vista simulada con ${formatFocal(focal)} en ${sensor.name}, cámara a ${formatDistance(targetDistance)} de una persona de 1,75 m ` +
+    `Vista simulada con ${formatFocal(focal)} en ${sensor.name}, cámara a ${formatDistance(targetDistance)} de una persona de 1.75 m ` +
     `${fill <= 1 ? `que ocupa el ${Math.round(fill * 100)} % de la altura del encuadre` : 'que no cabe entera en el encuadre'}. Detrás hay farolas, árboles, una fila de edificios a ${BUILDINGS_BEHIND_M} m ` +
     `que se ven al ${pct(bg)} del tamaño que tendrían junto a la persona, y montañas lejanas. Ángulo de visión horizontal ${formatDegrees(fov.h)}.`;
 

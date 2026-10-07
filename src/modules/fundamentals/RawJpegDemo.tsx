@@ -139,7 +139,7 @@ export function RawJpegDemo() {
   return (
     <div className="grid gap-5">
       <div className="grid gap-4 md:grid-cols-2">
-        <Developed image={dev.raw} title="RAW" badge="14 bits · 16.384 niveles" hist={histRaw} note={rawNote} />
+        <Developed image={dev.raw} title="RAW" badge="14 bits · 16 384 niveles" hist={histRaw} note={rawNote} />
         <Developed image={dev.jpeg} title="JPEG" badge="8 bits · 256 niveles" hist={histJpeg} note={jpegNote} />
       </div>
       <Panel eyebrow="Laboratorio" title="Revela la misma foto en RAW y en JPEG">

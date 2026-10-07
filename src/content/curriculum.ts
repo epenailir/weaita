@@ -55,7 +55,7 @@ export const CURRICULUM: CurriculumLevel[] = [
       "Entender focal, ángulo de visión, perspectiva y distorsión",
       "Calcular la hiperfocal y enfocar por zonas",
       "Trabajar en RAW y fijar el balance de blancos en Kelvin",
-      "Resolver retrato, paisaje y street con ajustes propios",
+      "Resolver retrato, paisaje y fotografía callejera con ajustes propios",
       "Disparar de noche a pulso sin trepidación"
     ],
     "modules": [
@@ -65,9 +65,9 @@ export const CURRICULUM: CurriculumLevel[] = [
       "Laboratorio de lentes › Gran angular y teleobjetivo",
       "Fundamentos › Modos de medición",
       "Fundamentos › RAW vs JPEG",
-      "Escenarios › Retrato en golden hour",
+      "Escenarios › Retrato en la hora dorada",
       "Escenarios › Paisaje",
-      "Escenarios › Street",
+      "Escenarios › Fotografía callejera",
       "Desafíos › Nivel Intermedio",
       "Quiz › Nivel Intermedio"
     ]

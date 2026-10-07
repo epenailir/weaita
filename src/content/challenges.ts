@@ -71,7 +71,7 @@ export const CHALLENGES: Challenge[] = [
     "title": "Rescata una foto quemada",
     "prompt": "Calle en sombra (EV100 ≈ 12). Alguien dejó la cámara en f/2.8, 1/60 s e ISO 1600: todo sale blanco. La velocidad está bloqueada en 1/60 s. Corrige la exposición con el ISO más bajo posible.",
     "sceneId": "street",
-    "level": "Cero",
+    "level": "Básico",
     "initial": {
       "aperture": 2.8,
       "shutterSeconds": 0.016666667,
@@ -106,7 +106,7 @@ export const CHALLENGES: Challenge[] = [
   {
     "id": "c04-foto-movida",
     "title": "¿Cómo solucionarías esta foto movida?",
-    "prompt": "Street en sombra (EV100 ≈ 12). La exposición está bien (f/16, 1/15 s, ISO 100), pero el peatón salió barrido y la foto tiembla. Congélalo y elimina la trepidación sin perder la exposición.",
+    "prompt": "Calle en sombra (EV100 ≈ 12). La exposición está bien (f/16, 1/15 s, ISO 100), pero el peatón salió barrido y la foto tiembla. Congélalo y elimina la trepidación sin perder la exposición.",
     "sceneId": "street",
     "level": "Básico",
     "initial": {
@@ -221,7 +221,7 @@ export const CHALLENGES: Challenge[] = [
   {
     "id": "c07-fondo-cremoso",
     "title": "Fondo cremoso para el retrato",
-    "prompt": "Retrato en golden hour (EV100 ≈ 11) con 85 mm, modelo a 3 m y árboles a 20 m. A f/11, 1/125 s e ISO 400 el fondo distrae y la foto queda algo oscura. Consigue un fondo muy desenfocado con ISO bajo.",
+    "prompt": "Retrato en la hora dorada (EV100 ≈ 11) con 85 mm, modelo a 3 m y árboles a 20 m. A f/11, 1/125 s e ISO 400 el fondo distrae y la foto queda algo oscura. Consigue un fondo muy desenfocado con ISO bajo.",
     "sceneId": "golden-hour-portrait",
     "level": "Básico",
     "initial": {
@@ -266,6 +266,7 @@ export const CHALLENGES: Challenge[] = [
     "prompt": "Cascada en un bosque sombreado (EV100 ≈ 9) con la cámara en trípode. A f/4, 1/500 s e ISO 400 el agua sale congelada en gotas y la foto está oscura. Logra el efecto seda con 1/2 s o más, sin filtro ND.",
     "sceneId": "waterfall",
     "level": "Básico",
+    "tripod": true,
     "initial": {
       "aperture": 4,
       "shutterSeconds": 0.002,
@@ -350,6 +351,7 @@ export const CHALLENGES: Challenge[] = [
     "prompt": "Avenida de noche (EV100 ≈ 5) con la cámara en trípode. Quieres que los faros se conviertan en líneas continuas: necesitas 4 s o más. Ahora estás en f/4, 1/60 s e ISO 1600.",
     "sceneId": "night-city",
     "level": "Intermedio",
+    "tripod": true,
     "initial": {
       "aperture": 4,
       "shutterSeconds": 0.016666667,
@@ -392,6 +394,7 @@ export const CHALLENGES: Challenge[] = [
     "prompt": "Paisaje con una roca a 3 m y montañas al fondo (EV100 ≈ 13), 24 mm en trípode con ISO fijo en 100. A f/2.8 solo la roca está nítida. Consigue nitidez desde 1.5 m o menos hasta el infinito.",
     "sceneId": "landscape",
     "level": "Intermedio",
+    "tripod": true,
     "initial": {
       "aperture": 2.8,
       "shutterSeconds": 0.001,
@@ -432,7 +435,7 @@ export const CHALLENGES: Challenge[] = [
   {
     "id": "c12-zona-street",
     "title": "Enfoque por zonas en la calle",
-    "prompt": "Street en sombra (EV100 ≈ 12), 35 mm enfocado a 3 m. A f/2, 1/1000 s e ISO 100 la zona nítida es mínima y quien no está exactamente a 3 m sale borroso. Logra una zona nítida de 2 m a 6 m y congela a quien camina.",
+    "prompt": "Calle en sombra (EV100 ≈ 12), 35 mm enfocado a 3 m. A f/2, 1/1000 s e ISO 100 la zona nítida es mínima y quien no está exactamente a 3 m sale borroso. Logra una zona nítida de 2 m a 6 m y congela a quien camina.",
     "sceneId": "street",
     "level": "Intermedio",
     "initial": {
@@ -483,6 +486,7 @@ export const CHALLENGES: Challenge[] = [
     "prompt": "Cielo con Vía Láctea (EV100 ≈ −7). Con 50 mm, f/2.8, 30 s e ISO 1600 las estrellas salen como trazos y la foto queda oscura. Tu zoom no abre más que f/2.8. Logra estrellas puntuales y exposición correcta con ISO 6400 como máximo.",
     "sceneId": "astro",
     "level": "Intermedio",
+    "tripod": true,
     "initial": {
       "aperture": 2.8,
       "shutterSeconds": 30,
@@ -567,6 +571,7 @@ export const CHALLENGES: Challenge[] = [
     "prompt": "Foto de producto en estudio (EV100 ≈ 9), cámara en trípode con 50 mm. Estás en f/2.8, 1/125 s e ISO 3200: la foto está muy sobreexpuesta, con ruido y poca profundidad. El cliente pide máxima calidad: apertura entre f/8 y f/11, ISO base y exposición precisa (±0.3 EV).",
     "sceneId": "studio",
     "level": "Avanzado",
+    "tripod": true,
     "initial": {
       "aperture": 2.8,
       "shutterSeconds": 0.008,
@@ -611,8 +616,8 @@ export const CHALLENGES: Challenge[] = [
   },
   {
     "id": "c16-compresion-retrato",
-    "title": "Teleobjetivo: fondo gigante y difuso",
-    "prompt": "Retrato en golden hour (EV100 ≈ 11), modelo a 3 m y fondo a 20 m. Con 50 mm a f/5.6, 1/250 s e ISO 400 el fondo apenas se desenfoca. Usa 135 mm o más para lograr un disco de desenfoque de al menos 5 % del ancho, a pulso y con ISO bajo.",
+    "title": "Teleobjetivo: fondo muy difuso",
+    "prompt": "Retrato en la hora dorada (EV100 ≈ 11), modelo a 3 m y fondo a 20 m. Con 50 mm a f/5.6, 1/250 s e ISO 400 el fondo apenas se desenfoca. Usa 135 mm o más para lograr un disco de desenfoque de al menos 5 % del ancho, a pulso y con ISO bajo.",
     "sceneId": "golden-hour-portrait",
     "level": "Avanzado",
     "initial": {
@@ -753,6 +758,7 @@ export const CHALLENGES: Challenge[] = [
     "prompt": "Cielo oscuro (EV100 ≈ −7). Tu cámara se vuelve muy ruidosa por encima de ISO 3200 y tu objetivo es un 24 mm. A f/4, 30 s e ISO 3200 las estrellas dejan trazos y la foto queda oscura. Resuélvelo sin subir el ISO.",
     "sceneId": "astro",
     "level": "Avanzado",
+    "tripod": true,
     "initial": {
       "aperture": 4,
       "shutterSeconds": 30,

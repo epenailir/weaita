@@ -60,7 +60,7 @@ export function HyperfocalTool({ cam, lighting }: ToolProps) {
               <span
                 aria-hidden="true"
                 className={cn(
-                  'osd inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-ink',
+                  'osd inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink',
                   inside(o.d) ? 'bg-data' : 'bg-danger',
                 )}
               >

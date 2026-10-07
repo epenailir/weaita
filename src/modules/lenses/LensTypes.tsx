@@ -116,7 +116,7 @@ function TypeCard({ type }: { type: LensType }) {
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((v) => !v)}
-        className="mt-4 inline-flex items-center gap-1.5 self-start rounded-sm text-[13px] font-medium text-amber hover:text-amber-strong"
+        className="mt-2 inline-flex min-h-11 items-center gap-1.5 self-start rounded-sm text-[13px] font-medium text-amber hover:text-amber-strong"
       >
         {open ? 'Ocultar ventajas y límites' : 'Ver ventajas y límites'}
         <ChevronDown size={15} className={cn('transition-transform duration-200', open && 'rotate-180')} aria-hidden="true" />

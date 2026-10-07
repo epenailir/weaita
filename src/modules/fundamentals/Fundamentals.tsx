@@ -8,6 +8,7 @@ import { Badge, Button, Panel, SectionHeader } from '../../components/ui';
 import { AF_MODES, CAMERA_MODES, FILE_FORMATS, METERING_MODES, WHITE_BALANCE } from '../../content/fundamentals';
 import { progress } from '../../lib/progress';
 import { cn } from '../../lib/cn';
+import { goToSection } from '../../lib/goToSection';
 import type { PageProps } from '../../App';
 import { AutofocusDemo } from './AutofocusDemo';
 import { ModesDemo } from './ModesDemo';
@@ -38,7 +39,7 @@ function Section({ id, eyebrow, title, intro, children }: { id: string; eyebrow:
     return () => io.disconnect();
   }, [id]);
   return (
-    <section ref={ref} id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 border-t border-line pt-10">
+    <section ref={ref} id={id} tabIndex={-1} aria-labelledby={`${id}-title`} className="scroll-mt-2 border-t border-line pt-10 focus:outline-none">
       <div className="eyebrow mb-2">{eyebrow}</div>
       <h2 id={`${id}-title`} className="text-xl font-semibold md:text-2xl">
         {title}
@@ -121,7 +122,7 @@ export function Fundamentals({ onNavigate }: PageProps) {
         }
       />
 
-      <nav aria-label="Temas de esta página" className="sticky top-[57px] z-20 -mx-4 overflow-x-auto border-y border-line bg-bg/90 px-4 py-2 backdrop-blur lg:top-0">
+      <nav aria-label="Temas de esta página" data-sticky-subnav className="sticky top-[57px] z-20 -mx-4 overflow-x-auto border-y border-line bg-bg/90 px-4 py-2 backdrop-blur lg:top-0">
         <ul className="flex gap-1">
           {SECTIONS.map((s) => (
             <li key={s.id}>
@@ -129,7 +130,7 @@ export function Fundamentals({ onNavigate }: PageProps) {
                 href={`#${s.id}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  goToSection(s.id);
                 }}
                 className="block whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] text-muted hover:bg-panel hover:text-fg"
               >
@@ -218,7 +219,7 @@ export function Fundamentals({ onNavigate }: PageProps) {
         intro="Cada fuente de luz tiene un color. Elige la luz de la escena y ajusta la cámara hasta que la carta gris se vea neutra."
       >
         <WhiteBalanceDemo />
-        <div className="mt-5 overflow-x-auto rounded-lg border border-line">
+        <div className="mt-5 overflow-x-auto rounded-lg border border-line" tabIndex={0} role="region" aria-label="Tabla de ajustes de balance de blancos (desplazable)">
           <table className="w-full min-w-[640px] text-left text-[13.5px]">
             <caption className="sr-only">Ajustes de balance de blancos y su temperatura</caption>
             <thead className="bg-panel-2 text-[12px] text-faint">

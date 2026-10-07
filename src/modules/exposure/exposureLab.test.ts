@@ -4,7 +4,7 @@ import type { CameraSettings } from '../../engine';
 import { DEFAULT_SETTINGS } from '../../state/useCamera';
 import { SCENES } from '../../sim/scenes';
 import type { SceneId } from '../../sim/types';
-import { grade } from './assessment';
+import { grade, gradeDynamicRange } from './assessment';
 import type { ShotContext, Status } from './assessment';
 import { diagnose } from './diagnosis';
 import { MISCONCEPTIONS, PREDICTIONS } from './experiments';
@@ -156,5 +156,15 @@ describe('experimentos de predicción', () => {
     expect(stab.before.metrics.shakeRatio).toBeGreaterThan(1);
     expect(stab.after.metrics.shakeRatio).toBeLessThan(1);
     expect(stab.after.metrics.subjectMotionBlurPx).toBeCloseTo(stab.before.metrics.subjectMotionBlurPx, 5);
+  });
+});
+
+describe('rango dinámico según el formato', () => {
+  it('el margen de 1 paso solo vale en RAW: en JPEG el mismo déficit no es «bien»', () => {
+    const scene = SCENES['night-city'];
+    const m = { ...computeMetrics(DEFAULT_SETTINGS, scene.lighting), dynamicRangeStops: scene.lighting.sceneContrastStops - 0.7 };
+    expect(gradeDynamicRange(m, scene, 'RAW')).toBe('good');
+    expect(gradeDynamicRange(m, scene, 'RAW+JPEG')).toBe('good');
+    expect(gradeDynamicRange(m, scene, 'JPEG')).not.toBe('good');
   });
 });

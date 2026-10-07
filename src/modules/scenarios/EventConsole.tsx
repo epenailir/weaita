@@ -134,7 +134,7 @@ export function EventConsole({ event, currentKey }: { event: ConsoleEvent; curre
                     transition={{ duration: 0.2, delay: reduced ? 0 : 0.05 + i * 0.04 }}
                     className="osd inline-flex h-6 items-center gap-1 rounded-sm border border-line bg-panel-2 px-1.5 text-[11.5px]"
                   >
-                    <span className="mr-0.5 text-[9.5px] uppercase tracking-[0.08em] text-faint">
+                    <span className="mr-0.5 text-[11px] uppercase tracking-[0.08em] text-faint">
                       {d.label}
                       <span className="sr-only">:</span>
                     </span>

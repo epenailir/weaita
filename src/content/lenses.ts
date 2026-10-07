@@ -12,7 +12,7 @@ export const FOCAL_LENGTH_INFO: FocalLengthInfo[] = [
       "Paisajes con el cielo como protagonista",
       "Perspectivas dramáticas con un primer plano muy cercano"
     ],
-    "perspective": "Exagera la distancia entre planos: lo cercano parece enorme y lo lejano diminuto. A menos de 1 m de un rostro deforma nariz y frente.",
+    "perspective": "Como te acercas mucho para llenar el encuadre, lo cercano parece enorme y lo lejano diminuto (la perspectiva la da la distancia, no la focal). A menos de 1 m de un rostro deforma nariz y frente.",
     "distortion": "Rectilíneo: las rectas siguen rectas, pero las formas en los bordes se estiran (efecto de la proyección, no un defecto). Los zooms ultra gran angular suelen mostrar barril visible, corregible con el perfil del objetivo.",
     "typicalAperture": "f/2.8 en zooms 14–24 mm; f/1.8 en fijos; f/4 en zooms livianos"
   },
@@ -26,7 +26,7 @@ export const FOCAL_LENGTH_INFO: FocalLengthInfo[] = [
       "Arquitectura e inmobiliaria",
       "Reportaje en espacios reducidos"
     ],
-    "perspective": "Amplía la sensación de profundidad; brilla con un primer plano fuerte. Si inclinas la cámara, las verticales convergen.",
+    "perspective": "Como lo usas cerca del primer plano, la sensación de profundidad aumenta; brilla con un primer plano fuerte. Si inclinas la cámara, las verticales convergen.",
     "distortion": "Barril ligero a moderado en el extremo corto de los zooms 24–70 y 24–105; estiramiento en los bordes con sujetos cercanos.",
     "typicalAperture": "f/1.4–f/1.8 en fijos; f/2.8 en zoom 24–70; f/4 en zoom 24–105"
   },
@@ -35,7 +35,7 @@ export const FOCAL_LENGTH_INFO: FocalLengthInfo[] = [
     "label": "Angular moderado",
     "fovNote": "63° en diagonal (54° horizontal). A 10 m cubre ~10 m de ancho. En APS-C rinde como un 52 mm.",
     "uses": [
-      "Street",
+      "Fotografía callejera",
       "Reportaje y documental",
       "Retrato ambiental",
       "Bodas"
@@ -94,7 +94,7 @@ export const FOCAL_LENGTH_INFO: FocalLengthInfo[] = [
       "Fauna cercana",
       "Paisaje de detalle con compresión"
     ],
-    "perspective": "Compresión visible: edificios o montañas lejanas parecen «pegados» al sujeto.",
+    "perspective": "Como lo usas desde lejos, los planos lejanos (edificios, montañas) parecen «pegados» al sujeto: compresión por distancia, no por la focal.",
     "distortion": "Cojín leve, típico del extremo largo de los zooms 70–200.",
     "typicalAperture": "f/2.8 en zoom 70–200; f/4–f/5.6 en zooms de apertura variable"
   },
@@ -108,7 +108,7 @@ export const FOCAL_LENGTH_INFO: FocalLengthInfo[] = [
       "Aviación",
       "Luna (con recorte)"
     ],
-    "perspective": "Compresión extrema: planos separados por cientos de metros parecen apilados. La calima atmosférica reduce el contraste a larga distancia.",
+    "perspective": "Como disparas desde muy lejos, planos separados por cientos de metros parecen apilados (compresión por distancia). La calima atmosférica reduce el contraste a larga distancia.",
     "distortion": "Cojín leve; suele importar más la aberración cromática lateral en ópticas no apocromáticas.",
     "typicalAperture": "f/2.8 en fijos profesionales (~3 kg); f/4.5–f/5.6 en fijos livianos; f/5.6–f/6.3 en zooms 100–400 y 150–600"
   }
@@ -130,7 +130,7 @@ export const LENS_TYPES: LensType[] = [
       "Necesitas varios para cubrir distintas situaciones",
       "En eventos rápidos puedes perder tomas mientras cambias de objetivo"
     ],
-    "whenToUse": "Retrato (50 y 85 mm), street (28 y 35 mm), poca luz y cuando quieres máxima calidad por gramo."
+    "whenToUse": "Retrato (50 y 85 mm), fotografía callejera (28 y 35 mm), poca luz y cuando quieres máxima calidad por gramo."
   },
   {
     "id": "zoom",

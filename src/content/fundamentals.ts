@@ -44,7 +44,7 @@ export const AF_MODES: AfModeInfo[] = [
     "name": "Enfoque manual con focus peaking",
     "aka": "MF + focus peaking (realce de bordes enfocados)",
     "how": "Giras el anillo de enfoque. El focus peaking colorea los bordes de mayor contraste, que coinciden con la zona enfocada. Puedes ampliar la vista 5–10× para afinar.",
-    "when": "Astrofotografía, macro, video, enfoque por zonas en street y escenas con poco contraste donde el AF duda.",
+    "when": "Astrofotografía, macro, video, enfoque por zonas en fotografía callejera y escenas con poco contraste donde el AF duda.",
     "tips": [
       "Amplía la imagen: el peaking a tamaño completo es aproximado",
       "Usa sensibilidad de peaking baja para mayor precisión",
@@ -99,7 +99,7 @@ export const CAMERA_MODES: CameraModeInfo[] = [
     "cameraControls": [
       "Velocidad de obturación"
     ],
-    "when": "Retrato, paisaje y street: cuando la profundidad de campo es lo principal.",
+    "when": "Retrato, paisaje y fotografía callejera: cuando la profundidad de campo es lo principal.",
     "tips": [
       "Vigila la velocidad que elige la cámara: si baja de 1/(focal), sube el ISO",
       "Configura Auto-ISO con una velocidad mínima",
@@ -171,7 +171,7 @@ export const FILE_FORMATS: FileFormatInfo[] = [
   {
     "id": "raw",
     "name": "RAW (NEF, CR3, ARW, RAF, DNG)",
-    "bitDepth": "12–14 bits por canal (4096–16 384 niveles)",
+    "bitDepth": "12–14 bits por canal (4096–16 384 niveles)",
     "pros": [
       "Más margen para recuperar altas luces y, sobre todo, sombras",
       "Balance de blancos ajustable sin pérdida después de disparar",
@@ -247,28 +247,28 @@ export const WHITE_BALANCE: WhiteBalanceInfo[] = [
   {
     "id": "daylight",
     "name": "Luz de día",
-    "kelvin": 5200,
+    "kelvin": 5500,
     "when": "Sol directo de media mañana a media tarde.",
     "note": "Referencia neutra. Úsala en atardeceres para conservar el tono dorado."
   },
   {
     "id": "flash",
     "name": "Flash",
-    "kelvin": 5500,
+    "kelvin": 5800,
     "when": "Flash de cámara o de estudio como luz principal.",
     "note": "Entre 5500 y 6000 K según la marca. Si mezclas flash con tungsteno, pon un filtro naranja (CTO) en el flash."
   },
   {
     "id": "cloudy",
     "name": "Nublado",
-    "kelvin": 6000,
+    "kelvin": 6500,
     "when": "Cielo cubierto.",
     "note": "Calienta ligeramente respecto de Luz de día; favorece la piel."
   },
   {
     "id": "shade",
     "name": "Sombra",
-    "kelvin": 7000,
+    "kelvin": 7500,
     "when": "Sujeto en sombra abierta bajo cielo azul (7000–8000 K).",
     "note": "Corrige el tinte azul de la sombra. Al sol, calienta demasiado."
   },

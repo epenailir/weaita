@@ -4,7 +4,7 @@ import type { Scenario } from './types';
 export const SCENARIOS: Scenario[] = [
   {
     "id": "golden-hour-portrait",
-    "name": "Retrato en golden hour",
+    "name": "Retrato en la hora dorada",
     "tagline": "Luz dorada, fondo cremoso y un rostro bien expuesto a contraluz.",
     "sceneEV100": 11,
     "illuminantK": 3500,
@@ -34,7 +34,7 @@ export const SCENARIOS: Scenario[] = [
       "f/2 con 85 mm a 3 m deja una zona nítida de apenas ~14 cm: ojos nítidos y fondo a 20 m convertido en un disco de desenfoque de ~3 % del ancho de la imagen.",
       "ISO 100 conserva el máximo rango dinámico, clave con un cielo brillante detrás del sujeto.",
       "1/500 s supera con creces el límite de trepidación de 85 mm (1/85 s) y congela gestos.",
-      "f/2, 1/500 s e ISO 100 equivalen a EV100 ≈ 11, el nivel típico de un rostro a contraluz en golden hour.",
+      "f/2, 1/500 s e ISO 100 equivalen a EV100 ≈ 11, el nivel típico de un rostro a contraluz en la hora dorada.",
       "La medición puntual sobre el rostro evita que el cielo haga subexponer la piel.",
       "Balance en 5500 K con luz real de ~3500 K conserva el tono dorado; si pones 3500 K, la cámara «neutraliza» el atardecer."
     ],
@@ -145,7 +145,7 @@ export const SCENARIOS: Scenario[] = [
         "Estabilizador desactivado en trípode",
         "Polarizador opcional (resta ~1.5 pasos de luz)",
         "Horquillado ±2 EV si el cielo supera el rango dinámico",
-        "Live view ampliado para enfocar"
+        "Pantalla en vivo ampliada para enfocar"
       ]
     },
     "why": [
@@ -166,7 +166,7 @@ export const SCENARIOS: Scenario[] = [
       "Monta la cámara en el trípode y nivela el horizonte.",
       "Modo A, f/11, ISO 100 y RAW.",
       "Compón con un primer plano interesante a 1–5 m.",
-      "Enfoca en manual con live view ampliado a ~1.8 m (hiperfocal de 24 mm a f/11) o sobre el primer plano a ~3 m.",
+      "Enfoca en manual con la pantalla en vivo ampliada a ~1.8 m (hiperfocal de 24 mm a f/11) o sobre el primer plano a ~3 m.",
       "Revisa el histograma: si el cielo recorta, aplica −0.3 a −0.7 EV o haz horquillado.",
       "Dispara con el temporizador de 2 s.",
       "Amplía la foto y comprueba la nitidez en el primer plano y en el horizonte."
@@ -227,7 +227,7 @@ export const SCENARIOS: Scenario[] = [
       "Busca un sitio oscuro y una noche sin luna; el núcleo de la Vía Láctea se ve mejor entre marzo y septiembre.",
       "Trípode, modo M, RAW y estabilizador desactivado.",
       "Abre al máximo: f/2.8 o más.",
-      "Enfoca en MF: live view ampliado 10× sobre una estrella brillante hasta que sea el punto más pequeño; fija el anillo con cinta.",
+      "Enfoca en MF: pantalla en vivo ampliada 10× sobre una estrella brillante hasta que sea el punto más pequeño; fija el anillo con cinta.",
       "Calcula el tiempo: 500 ÷ (focal × factor de recorte). Con 20 mm en full frame, 25 s; con NPF, ~14 s. Usa 15 s.",
       "ISO 3200–6400 y revisa el histograma: la masa debe quedar en el primer tercio, separada del borde izquierdo.",
       "Balance manual entre 3800 y 4200 K.",
@@ -293,7 +293,7 @@ export const SCENARIOS: Scenario[] = [
     ],
     "mistakes": [
       "Depender del AF-S: la cámara busca foco y pierdes el momento.",
-      "Usar f/2 «para desenfocar» en street: la zona nítida se reduce a centímetros.",
+      "Usar f/2 «para desenfocar» en fotografía callejera: la zona nítida se reduce a centímetros.",
       "Velocidad de 1/60 s: peatones movidos.",
       "Usar teleobjetivo desde lejos: fotos frías y sin contexto.",
       "Olvidar devolver el enfoque a 3 m tras usar el AF."

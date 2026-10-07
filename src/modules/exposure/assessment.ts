@@ -233,10 +233,10 @@ export function gradeNoise(m: ShotMetrics, brief: SceneBrief): Status {
   return m.noiseScore <= brief.noise.good ? 'good' : m.noiseScore <= brief.noise.fair ? 'fair' : 'bad';
 }
 
-export function gradeDynamicRange(m: ShotMetrics, scene: SimScene): Status {
+export function gradeDynamicRange(m: ShotMetrics, scene: SimScene, format: CameraSettings['format']): Status {
   const deficit = scene.lighting.sceneContrastStops - m.dynamicRangeStops;
-  // Hasta un paso de déficit se recupera en RAW sin problema.
-  if (deficit <= 1) return 'good';
+  // Hasta un paso de déficit se recupera en RAW sin problema; en JPEG no hay ese margen.
+  if (deficit <= (format === 'JPEG' ? 0 : 1)) return 'good';
   const isoLoss = dynamicRangeStops(100) - m.dynamicRangeStops;
   if (isoLoss < 1) return 'fair';
   return deficit > 1.5 ? 'bad' : 'fair';
@@ -272,7 +272,7 @@ export function grade(ctx: ShotContext): Grades {
     background: gradeBackground(m, brief),
     diffraction: gradeDiffraction(m, e),
     noise: gradeNoise(m, brief),
-    dynamicRange: gradeDynamicRange(m, scene),
+    dynamicRange: gradeDynamicRange(m, scene, e.format),
     whiteBalance: gradeWhiteBalance(e, scene, brief),
     limit: ctx.limited ? 'bad' : 'good',
     level: gradeLevel(ctx.rollDeg),
@@ -383,7 +383,9 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
         detail:
           status === 'good'
             ? 'Las altas luces conservan detalle: casi ningún píxel llega al blanco puro.'
-            : `El ${pctText(pct)} de los píxeles llegó al blanco puro: ahí no queda información que recuperar, ni siquiera en RAW.`,
+            : e.format === 'JPEG'
+              ? `El ${pctText(pct)} de los píxeles llegó al blanco puro: en JPEG ahí no queda información que recuperar.`
+              : `El ${pctText(pct)} de los píxeles está quemado en la vista previa JPEG. El RAW puede guardar hasta ~1 paso más de margen en las altas luces, pero no cuentes con ello.`,
       };
     }
 
@@ -521,7 +523,7 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
           deficit <= 0
             ? `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: cabe entera.`
             : deficit <= 1
-              ? `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: casi cabe, y en RAW se recupera el resto.`
+              ? `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: casi cabe${e.format === 'JPEG' ? ', pero en JPEG ese resto se pierde; en RAW se recuperaría.' : ', y en RAW se recupera el resto.'}`
               : `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: ${deficit.toFixed(1)} pasos se perderán en luces o sombras.`,
       };
     }

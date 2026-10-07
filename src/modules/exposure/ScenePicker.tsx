@@ -90,9 +90,9 @@ export function ScenePicker({ value, onChange }: { value: SceneId; onChange: (id
   return (
     <section aria-labelledby="escenas-title" className="relative">
       <div className="mb-2.5 flex items-center justify-between gap-3">
-        <h2 id="escenas-title" className="eyebrow">
+        <p id="escenas-title" className="eyebrow">
           Elige una escena <span className="normal-case tracking-normal text-faint">· {SCENE_LIST.length} situaciones con luz real</span>
-        </h2>
+        </p>
         <div className="hidden gap-1 lg:flex" aria-hidden="true">
           <button type="button" tabIndex={-1} onClick={() => scrollBy(-1)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line bg-panel-2 text-muted hover:text-fg">
             <ChevronLeft size={15} />

@@ -266,7 +266,7 @@ export function CostMeters({ ctx, assessment, active }: { ctx: ShotContext; asse
               <span className="flex items-center gap-1.5 text-[12px] font-medium text-muted">
                 <span className="text-faint">{g.icon}</span>
                 {g.title}
-                {active === g.group && <span className="osd rounded-xs bg-amber px-1 text-[9.5px] font-semibold uppercase text-ink">último ajuste</span>}
+                {active === g.group && <span className="osd rounded-xs bg-amber px-1 text-[11px] font-semibold uppercase text-ink">último ajuste</span>}
               </span>
               <span className="osd text-[12px] text-amber">{g.value}</span>
             </div>

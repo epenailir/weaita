@@ -14,6 +14,7 @@ import { FocalSheet } from './FocalSheet';
 import { LensTypes } from './LensTypes';
 import { MacroDemo } from './MacroDemo';
 import { LabSection } from './shared';
+import { goToSection } from '../../lib/goToSection';
 
 const SECTIONS = [
   { id: 'focal', label: 'Focal y perspectiva' },
@@ -47,7 +48,7 @@ export function LensLab({ onNavigate }: PageProps) {
         }
       />
 
-      <nav aria-label="Temas de esta página" className="sticky top-[57px] z-20 -mx-4 overflow-x-auto border-y border-line bg-bg/90 px-4 py-2 backdrop-blur lg:top-0">
+      <nav aria-label="Temas de esta página" data-sticky-subnav className="sticky top-[57px] z-20 -mx-4 overflow-x-auto border-y border-line bg-bg/90 px-4 py-2 backdrop-blur lg:top-0">
         <ul className="flex gap-1">
           {SECTIONS.map((s) => (
             <li key={s.id}>
@@ -55,7 +56,7 @@ export function LensLab({ onNavigate }: PageProps) {
                 href={`#${s.id}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  goToSection(s.id);
                 }}
                 className="block whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] text-muted hover:bg-panel hover:text-fg"
               >
@@ -70,7 +71,7 @@ export function LensLab({ onNavigate }: PageProps) {
         id="focal"
         eyebrow="1 · Distancia focal y perspectiva"
         title="Mismo sujeto, otra focal: ¿qué cambia?"
-        intro="La escena está a escala real: una persona de 1,75 m, farolas cada 8 m, una fila de edificios 110 m detrás y montañas a varios kilómetros. La imagen se calcula con la proyección de una cámara estenopeica sobre el sensor que elijas."
+        intro="La escena está a escala real: una persona de 1.75 m, farolas cada 8 m, una fila de edificios 110 m detrás y montañas a varios kilómetros. La imagen se calcula con la proyección de una cámara estenopeica sobre el sensor que elijas."
       >
         <FocalExplorer
           focal={focal}

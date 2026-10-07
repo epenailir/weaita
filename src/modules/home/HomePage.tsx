@@ -26,7 +26,7 @@ const LEVEL_ROUTE: Record<Level, RouteId> = {
 const MODULES: Array<{ id: RouteId; icon: LucideIcon; title: string; text: string; tag: string }> = [
   { id: 'exposicion', icon: Aperture, title: 'Triángulo de exposición', text: 'Mueve apertura, velocidad e ISO sobre una imagen simulada con bokeh, barrido de movimiento, ruido e histograma en vivo.', tag: 'Simulador' },
   { id: 'lentes', icon: ScanSearch, title: 'Laboratorio de lentes', text: 'Compara de 14 a 400 mm: ángulo de visión, compresión de perspectiva, distorsión, macro y zooms de apertura variable.', tag: 'Óptica' },
-  { id: 'escenarios', icon: Mountain, title: 'Escenarios reales', text: 'Golden hour, deporte, paisaje, Vía Láctea y calle: la receta óptima, por qué funciona y qué pasa si la rompes.', tag: 'Práctica' },
+  { id: 'escenarios', icon: Mountain, title: 'Escenarios reales', text: 'Hora dorada, deporte, paisaje, Vía Láctea y calle: la receta óptima, por qué funciona y qué pasa si la rompes.', tag: 'Práctica' },
   { id: 'fundamentos', icon: BookOpen, title: 'Fundamentos', text: 'AF-S, AF-C y enfoque manual con focus peaking, modos P/A/S/M, RAW vs. JPEG y balance de blancos en Kelvin.', tag: 'Base' },
   { id: 'desafios', icon: Target, title: 'Desafíos y quiz', text: 'Arregla fotos con problemas usando objetivos medibles y comprueba lo aprendido con preguntas explicadas.', tag: 'Evaluación' },
 ];
@@ -48,7 +48,7 @@ function EquivalenceTable() {
         queda igual de clara, pero cambia su aspecto: menos profundidad de campo y movimiento más congelado.
       </p>
       <Segmented label="Luz de la escena (ISO 100)" options={SCENES_EV.map((s) => ({ value: s.value, label: s.label }))} value={ev} onChange={setEv} size="sm" className="[&_[role=radiogroup]]:flex-wrap" />
-      <div className="mt-4 overflow-x-auto">
+      <div className="mt-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Tabla de pares equivalentes (desplazable)">
         <table className="w-full min-w-[420px] text-left">
           <caption className="sr-only">Pares apertura y velocidad equivalentes a ISO 100</caption>
           <thead>
@@ -131,7 +131,7 @@ export function HomePage({ onNavigate }: PageProps) {
       <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="eyebrow mb-4 text-amber">Escuela interactiva de cámara manual</div>
-          <h1 className="text-[34px] font-semibold leading-[1.08] tracking-tight md:text-[46px]">
+          <h1 tabIndex={-1} className="text-[34px] font-semibold leading-[1.08] tracking-tight focus:outline-none md:text-[46px]">
             Aprende a disparar en modo M <span className="text-muted">moviendo los diales, no memorizando tablas.</span>
           </h1>
           <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-muted">
@@ -162,7 +162,7 @@ export function HomePage({ onNavigate }: PageProps) {
           </dl>
         </motion.div>
         <div className="relative rounded-2xl border border-line bg-ink p-5 tech-grid">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="eyebrow">Prueba rápida · sol pleno, EV 15</span>
             <Badge tone="neutral">±1 paso por clic</Badge>
           </div>

@@ -66,10 +66,14 @@ const CLASSIC_FOCALS = new Set([14, 24, 35, 50, 85, 135, 200, 300, 400, 600]);
 const WB_MIN = 1800;
 const WB_MAX = 10000;
 
-/** Degradado de la pista de Kelvin, muestreado en escala logarítmica como el propio control. */
+/**
+ * Degradado de la pista de Kelvin, muestreado en escala logarítmica como el propio control.
+ * Pinta el efecto en la imagen (pocos Kelvin ⇒ foto más fría/azul, muchos ⇒ más cálida),
+ * igual que el laboratorio de balance de blancos de Fundamentos.
+ */
 const WB_GRADIENT = `linear-gradient(to right, ${Array.from({ length: 9 }, (_, i) => {
   const k = WB_MIN * Math.pow(WB_MAX / WB_MIN, i / 8);
-  return `${kelvinToCss(k)} ${(i / 8) * 100}%`;
+  return `${kelvinToCss((WB_MIN * WB_MAX) / k)} ${(i / 8) * 100}%`;
 }).join(', ')})`;
 
 const FOCUS_MIN = 0.3;
@@ -222,7 +226,7 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
               onChange={(k) => cam.set({ wbK: Math.round(k / 50) * 50 })}
               format={formatKelvin}
               trackBackground={WB_GRADIENT}
-              hints={['Para luz cálida', 'Para luz fría']}
+              hints={['Imagen más fría', 'Imagen más cálida']}
             />
           </Tile>
         );
@@ -402,7 +406,7 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
                   Ángulo de visión horizontal de {fov.toFixed(0)}°: equivale a <span className="osd text-muted">{eq} mm</span> en full frame.
                 </>
               ) : (
-                `Ángulo de visión horizontal de ${fov.toFixed(0)}°. Más focal: encuadre más cerrado y fondo más comprimido.`
+                `Ángulo de visión horizontal de ${fov.toFixed(0)}°. Más focal: encuadre más cerrado. Desde el mismo sitio es solo un recorte; la perspectiva cambia únicamente si te alejas o te acercas.`
               )
             }
           >

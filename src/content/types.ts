@@ -122,6 +122,8 @@ export interface Challenge {
   level: Level;
   initial: { aperture: number; shutterSeconds: number; iso: number; focalMm: number };
   locked: ChallengeParam[];
+  /** La cámara está sobre trípode (sin trepidación). Por defecto, a pulso. */
+  tripod?: boolean;
   targets: MetricTarget[];
   hints: string[];
   explanation: string;

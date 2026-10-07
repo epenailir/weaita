@@ -182,7 +182,7 @@ export function ChallengeRunner({ challenge, index, total, solved, onBack, onPre
               </Badge>
             )}
           </div>
-          <h2 id="challenge-title" className="mt-3 text-xl font-semibold text-fg md:text-2xl">
+          <h2 id="challenge-title" tabIndex={-1} className="mt-3 scroll-mt-24 text-xl font-semibold text-fg focus:outline-none md:text-2xl">
             {challenge.title}
           </h2>
           <p className="mt-2 max-w-3xl text-[14.5px] leading-relaxed text-muted">{challenge.prompt}</p>
@@ -198,6 +198,10 @@ export function ChallengeRunner({ challenge, index, total, solved, onBack, onPre
               {free.map((p) => PARAM_LABEL[p]).join(', ')}
             </span>
             <span className="flex items-center gap-1.5 text-muted">
+              <span className="text-faint">Soporte:</span>
+              {challenge.tripod ? 'trípode' : 'a pulso'}
+            </span>
+            <span className="flex items-center gap-1.5 text-muted">
               <span className="text-faint">Modo</span>
               <span className="osd rounded-xs bg-amber px-1 text-[11px] font-semibold text-ink">M</span>
             </span>
@@ -206,24 +210,26 @@ export function ChallengeRunner({ challenge, index, total, solved, onBack, onPre
       </header>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_368px] xl:grid-rows-[auto_auto_1fr]">
-        {/* Visor */}
-        <div className="min-w-0 xl:col-start-1 xl:row-start-1">
-          <Viewfinder osd={osd} histogram={render?.histogram ?? null} warnings={warnings} showGrid={grid}>
-            <canvas ref={canvasRef} role="img" aria-label={canvasLabel} />
-            <AnimatePresence>
-              {flash > 0 && !reduced && (
-                <motion.div
-                  key={flash}
-                  className="pointer-events-none absolute inset-0 bg-black"
-                  initial={{ opacity: 0.85 }}
-                  animate={{ opacity: 0 }}
-                  transition={{ duration: 0.18, ease: 'easeOut' }}
-                  aria-hidden="true"
-                />
-              )}
-            </AnimatePresence>
-          </Viewfinder>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+        {/* Visor: en móvil (con altura suficiente) queda fijo bajo la cabecera para ver cada ajuste */}
+        <div className="contents xl:col-start-1 xl:row-start-1 xl:block xl:min-w-0">
+          <div className="min-w-0 [@media(max-width:767px)_and_(min-height:600px)]:sticky [@media(max-width:767px)_and_(min-height:600px)]:top-[53px] [@media(max-width:767px)_and_(min-height:600px)]:z-20 [@media(max-width:767px)_and_(min-height:600px)]:-mx-4 [@media(max-width:767px)_and_(min-height:600px)]:bg-bg/95 [@media(max-width:767px)_and_(min-height:600px)]:px-4 [@media(max-width:767px)_and_(min-height:600px)]:py-2 [@media(max-width:767px)_and_(min-height:600px)]:backdrop-blur">
+            <Viewfinder osd={osd} histogram={render?.histogram ?? null} warnings={warnings} showGrid={grid}>
+              <canvas ref={canvasRef} role="img" aria-label={canvasLabel} />
+              <AnimatePresence>
+                {flash > 0 && !reduced && (
+                  <motion.div
+                    key={flash}
+                    className="pointer-events-none absolute inset-0 bg-black"
+                    initial={{ opacity: 0.85 }}
+                    animate={{ opacity: 0 }}
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                    aria-hidden="true"
+                  />
+                )}
+              </AnimatePresence>
+            </Viewfinder>
+          </div>
+          <div className="-mt-3 flex min-w-0 flex-wrap items-center gap-2 xl:mt-3">
             <ToggleChip pressed={zebras} onClick={() => setZebras((v) => !v)} icon={<ScanLine size={14} aria-hidden="true" />}>
               Zebras
             </ToggleChip>

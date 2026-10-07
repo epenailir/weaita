@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { Aperture, BookOpen, Compass, Mountain, ScanSearch, Target } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/cn';
@@ -56,11 +57,50 @@ export function AppShell({
   const done = p.challenges.length + p.quiz.length + p.scenarios.length;
   const total = Math.max(1, totals.challenges + totals.quiz + totals.scenarios);
   const pct = Math.min(100, Math.round((done / total) * 100));
+  const mainRef = useRef<HTMLElement>(null);
+  const prevRoute = useRef(route);
+
+  // Al cambiar de ruta, lleva el foco al título de la nueva página (cargada de forma diferida)
+  // para que el teclado y los lectores de pantalla continúen desde el contenido nuevo.
+  useEffect(() => {
+    if (prevRoute.current === route) return;
+    prevRoute.current = route;
+    const main = mainRef.current;
+    if (!main) return;
+    const focusTitle = () => {
+      // Mientras Suspense carga la página nueva, la anterior sigue en el DOM oculta: se ignora.
+      const h1 = Array.from(main.querySelectorAll<HTMLElement>('h1')).find((el) => el.getClientRects().length > 0);
+      if (!h1) return false;
+      if (!h1.hasAttribute('tabindex')) h1.tabIndex = -1;
+      h1.focus({ preventScroll: true });
+      return document.activeElement === h1;
+    };
+    if (focusTitle()) return;
+    const obs = new MutationObserver(() => {
+      if (focusTitle()) obs.disconnect();
+    });
+    obs.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    const timeout = window.setTimeout(() => obs.disconnect(), 5000);
+    return () => {
+      obs.disconnect();
+      window.clearTimeout(timeout);
+    };
+  }, [route]);
+
+  const skipToContent = (e: MouseEvent<HTMLAnchorElement>) => {
+    // Sin navegación por hash: #contenido no es una ruta y cambiaría de página.
+    e.preventDefault();
+    const main = mainRef.current;
+    if (!main) return;
+    main.focus({ preventScroll: true });
+    main.scrollIntoView();
+  };
 
   return (
     <div className="min-h-dvh bg-bg text-fg">
       <a
         href="#contenido"
+        onClick={skipToContent}
         className="sr-only z-50 rounded-md bg-amber px-3 py-2 text-ink focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
       >
         Saltar al contenido
@@ -130,7 +170,7 @@ export function AppShell({
         </span>
       </header>
 
-      <main id="contenido" className="pb-24 lg:pb-12 lg:pl-64">
+      <main id="contenido" ref={mainRef} tabIndex={-1} className="pb-24 focus:outline-none lg:pb-12 lg:pl-64">
         <div className="mx-auto w-full max-w-[1320px] px-4 pt-6 sm:px-6 lg:px-10 lg:pt-10">{children}</div>
       </main>
 
@@ -141,7 +181,7 @@ export function AppShell({
             const active = item.id === route;
             const Icon = item.icon;
             return (
-              <li key={item.id}>
+              <li key={item.id} className="min-w-0">
                 <a
                   href={`#${item.id}`}
                   onClick={(e) => {
@@ -149,10 +189,10 @@ export function AppShell({
                     onNavigate(item.id);
                   }}
                   aria-current={active ? 'page' : undefined}
-                  className={cn('flex flex-col items-center gap-1 px-1 py-2.5 text-[10.5px] font-medium', active ? 'text-amber' : 'text-faint')}
+                  className={cn('flex min-w-0 flex-col items-center gap-1 px-1 py-2.5 text-[10.5px] font-medium', active ? 'text-amber' : 'text-faint')}
                 >
                   <Icon size={19} aria-hidden="true" />
-                  <span className="truncate">{item.short}</span>
+                  <span className="block max-w-full truncate">{item.short}</span>
                 </a>
               </li>
             );

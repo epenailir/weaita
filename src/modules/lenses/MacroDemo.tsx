@@ -1,9 +1,17 @@
 import { useId, useState } from 'react';
 import { Focus, Ruler } from 'lucide-react';
-import { APERTURES, SENSORS, effectiveAperture, formatAperture, formatThirds, macroDofMm, magnification } from '../../engine';
+import { APERTURES, SENSORS, effectiveAperture, formatThirds, macroDofMm, magnification } from '../../engine';
 import { LENS_TYPES } from '../../content/lenses';
 import { Callout, Panel, RangeSlider, StopSlider } from '../../components/ui';
 import { BulletList, Readout } from './shared';
+
+/**
+ * f efectivo sin ajustarlo a la escala de diafragmas (que termina en f/22): a 1:1 con f/16
+ * debe leerse f/32, no f/22.
+ */
+function formatEffectiveAperture(n: number): string {
+  return `f/${n < 10 ? n.toFixed(1).replace(/\.0$/, '') : Math.round(n)}`;
+}
 
 const FOCAL_MM = 100;
 const SENSOR = SENSORS.ff;
@@ -278,7 +286,7 @@ export function MacroDemo() {
           <div className="grid grid-cols-2 gap-2">
             <Readout label="Reproducción" value={formatRatio(m)} tone="amber" hint={`Ampliación ×${m.toFixed(2)}`} />
             <Readout label="Sujeto–objetivo" value={`${(s * 100).toFixed(1)} cm`} hint="Modelo de lente delgada" />
-            <Readout label="f efectivo" value={formatAperture(nEff)} tone="danger" hint={`N·(1 + m) con f/${aperture.label}`} />
+            <Readout label="f efectivo" value={formatEffectiveAperture(nEff)} tone="danger" hint={`N·(1 + m) con f/${aperture.label}`} />
             <Readout label="Luz perdida" value={lossEv < 1 / 6 ? 'Casi nada' : `${formatThirds(-lossEv)} pasos`} tone={lossEv < 1 / 6 ? 'data' : 'danger'} hint="Por la extensión del enfoque" />
             <Readout label="Profundidad de campo" value={formatMm(dof)} tone="data" hint="2·N·c·(1 + m)/m²" className="col-span-2" />
           </div>

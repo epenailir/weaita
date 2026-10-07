@@ -86,6 +86,28 @@
     border-radius: 4px;
   }
 
+  /*
+   * Reserva el espacio de la cabecera fija y la barra inferior (móvil) para que el foco
+   * y los scrollIntoView no dejen el elemento tapado. Las páginas con subnav sticky
+   * (data-sticky-subnav) necesitan más margen superior.
+   */
+  html {
+    scroll-padding-top: 4rem;
+    scroll-padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  }
+  html:has([data-sticky-subnav]) {
+    scroll-padding-top: 7.5rem;
+  }
+  @media (min-width: 64rem) {
+    html {
+      scroll-padding-top: 1rem;
+      scroll-padding-bottom: 1rem;
+    }
+    html:has([data-sticky-subnav]) {
+      scroll-padding-top: 4.5rem;
+    }
+  }
+
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--color-line-strong) transparent;

@@ -9,7 +9,7 @@ import type { SceneId } from '../../sim/types';
 import { ofSubject } from './sceneBriefs';
 import { adviseAll } from './advice';
 import type { Advice } from './advice';
-import { CRITERION_WEIGHT, STATUS_WORD, assess, cocPct, evText, pctText, shutterText } from './assessment';
+import { CRITERION_WEIGHT, STATUS_WORD, assess, evText, pctText, shutterText } from './assessment';
 import type { Assessment, Criterion, CriterionId, Grades, ShotContext } from './assessment';
 
 export interface Finding {
@@ -130,7 +130,8 @@ export function viewfinderWarnings(ctx: ShotContext, grades: Grades): string[] {
   if (m.starTrailRatio > 1) w.push(`Estrellas movidas: máx. ${formatShutter(m.maxStarExposureS)}`);
   if (ctx.highlightsPct !== null && ctx.highlightsPct > brief.clipTolerancePct + 1) w.push(`Altas luces quemadas: ${pctText(ctx.highlightsPct)}`);
   if (grades.noise === 'bad') w.push(`Ruido alto: ISO ${formatIso(e.iso)}`);
-  if (m.diffractionPct > cocPct(sensor)) w.push(`Difracción a ${formatAperture(e.aperture)}`);
+  // Mismo umbral que gradeDiffraction: el disco de Airy llega a ~⅔ del círculo de confusión (f/16 en full frame).
+  if (grades.diffraction !== 'good') w.push(`Difracción a ${formatAperture(e.aperture)}`);
   return w.slice(0, 3);
 }
 

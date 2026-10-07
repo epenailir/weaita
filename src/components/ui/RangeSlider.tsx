@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
 export interface RangeSliderProps {
@@ -21,6 +21,9 @@ export interface RangeSliderProps {
 }
 
 const RES = 1000;
+/** Paso de teclado sin `step`: 1 % del recorrido (flechas) y 10 % (Re Pág / Av Pág). */
+const KEY_SMALL = RES / 100;
+const KEY_BIG = RES / 10;
 
 /** Slider continuo accesible basado en <input type="range"> con estilo de visor. */
 export function RangeSlider({
@@ -48,6 +51,41 @@ export function RangeSlider({
     return Math.round(v / step) * step;
   };
   const pos = Math.max(0, Math.min(RES, toPos(value)));
+  const clamp = (v: number) => Math.min(max, Math.max(min, v));
+
+  // El input trabaja sobre 0..RES, así que el paso nativo del teclado (1/RES) se perdería
+  // al redondear a `step`. Calculamos aquí el valor siguiente en unidades reales.
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    let next: number;
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowUp':
+      case 'ArrowLeft':
+      case 'ArrowDown': {
+        const dir = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : -1;
+        next = step ? (Math.round(value / step) + dir) * step : fromPos(pos + dir * KEY_SMALL);
+        break;
+      }
+      case 'PageUp':
+      case 'PageDown': {
+        const dir = e.key === 'PageUp' ? 1 : -1;
+        next = fromPos(pos + dir * KEY_BIG);
+        if (step && next === value) next = value + dir * step;
+        break;
+      }
+      case 'Home':
+        next = min;
+        break;
+      case 'End':
+        next = max;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    next = clamp(next);
+    if (next !== value) onChange(next);
+  };
 
   return (
     <div className={cn('select-none', className)}>
@@ -68,6 +106,7 @@ export function RangeSlider({
         disabled={disabled}
         aria-valuetext={format(value)}
         onChange={(e) => onChange(fromPos(Number(e.target.value)))}
+        onKeyDown={onKeyDown}
         className="range-osd w-full"
         style={{
           ['--pos' as string]: `${(pos / RES) * 100}%`,

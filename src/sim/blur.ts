@@ -15,11 +15,18 @@ export interface Surface {
   ctx: CanvasRenderingContext2D;
 }
 
-export function createSurface(w = 1, h = 1, readback = false): Surface {
+/**
+ * Lienzo fuera del DOM. Todas las superficies del simulador viven en memoria de CPU
+ * (`willReadFrequently`): cada cuadro termina en un getImageData y, si las capas estuvieran en
+ * la GPU, cada lectura obligaría a sincronizar y copiar de vuelta (llegó a ser ~80 % del hilo
+ * principal en el visor en vivo). Mezclar superficies de CPU y de GPU es aún peor, porque cada
+ * drawImage entre ellas también fuerza una copia, así que no hay opción de usar la GPU.
+ */
+export function createSurface(w = 1, h = 1): Surface {
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(w));
   canvas.height = Math.max(1, Math.round(h));
-  const ctx = canvas.getContext('2d', readback ? { willReadFrequently: true } : { alpha: true });
+  const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: true });
   if (!ctx) throw new Error('El navegador no ofrece Canvas 2D');
   return { canvas, ctx };
 }
@@ -63,7 +70,7 @@ export function supportsCanvasFilter(): boolean {
   if (filterSupport !== null) return filterSupport;
   filterSupport = false;
   try {
-    const s = createSurface(15, 15, true);
+    const s = createSurface(15, 15);
     const ctx = s.ctx;
     if (typeof ctx.filter !== 'string') return filterSupport;
     ctx.filter = 'blur(2px)';

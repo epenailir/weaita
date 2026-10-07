@@ -118,18 +118,24 @@ export function Switch({ label, checked, onChange, description, disabled, classN
         <label htmlFor={id} className="text-[13px] font-medium text-fg">
           {label}
         </label>
-        {description && <p className="mt-0.5 text-xs text-faint">{description}</p>}
+        {description && (
+          <p id={`${id}-desc`} className="mt-0.5 text-xs text-faint">
+            {description}
+          </p>
+        )}
       </div>
       <button
         id={id}
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-describedby={description ? `${id}-desc` : undefined}
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(
-          'relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors duration-150 disabled:opacity-40',
-          checked ? 'border-amber bg-amber' : 'border-line-strong bg-ink',
+          // El pseudo-elemento amplía el área táctil a 44×36 px sin cambiar el tamaño visible.
+          "relative mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors duration-150 before:absolute before:-inset-x-1 before:-inset-y-2 before:content-[''] disabled:opacity-40",
+          checked ? 'border-amber bg-amber' : 'border-faint bg-ink',
         )}
       >
         <span
@@ -277,7 +283,7 @@ export function SectionHeader({
     <header className={cn('flex flex-col gap-4 md:flex-row md:items-end md:justify-between', className)}>
       <div className="max-w-2xl">
         {eyebrow && <div className="eyebrow mb-2 text-amber">{eyebrow}</div>}
-        <h1 className="text-2xl font-semibold text-fg md:text-[28px]">{title}</h1>
+        <h1 tabIndex={-1} className="text-2xl font-semibold text-fg focus:outline-none md:text-[28px]">{title}</h1>
         {description && <p className="mt-2 text-[15px] leading-relaxed text-muted">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}

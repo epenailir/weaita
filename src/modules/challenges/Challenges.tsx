@@ -3,7 +3,7 @@
  * (lista por nivel → vista de desafío con simulador) y quiz intercalado.
  */
 import { ArrowRight, BookOpenCheck, CheckCircle2, Target, Trophy } from 'lucide-react';
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import type { PageProps } from '../../App';
 import { Button, SectionHeader } from '../../components/ui';
@@ -24,9 +24,10 @@ function challengeFromHash(): string | null {
   return sub && CHALLENGES.some((c) => c.id === sub) ? sub : null;
 }
 
+/** Escribe la subruta en el historial (pushState no dispara hashchange) para que atrás y adelante funcionen. */
 function setHash(sub: string | null) {
   const next = sub ? `#desafios/${sub}` : '#desafios';
-  if (window.location.hash !== next) window.history.replaceState(null, '', next);
+  if (window.location.hash !== next) window.history.pushState(null, '', next);
 }
 
 function SummaryCard({ icon, label, children, className }: { icon: ReactNode; label: string; children: ReactNode; className?: string }) {
@@ -68,11 +69,44 @@ export function Challenges({ onNavigate }: PageProps) {
   const quizCount = QUIZ.filter((q) => p.quiz.includes(q.id)).length;
   const recommended = recommendedChallenge(CHALLENGES, p.challenges);
 
+  // Foco tras cambiar de vista: al título del desafío al abrirlo, o a la tarjeta del que se cerró al volver.
+  const focusAfter = useRef<{ returnTo: string | null } | null>(null);
+
   const open = useCallback((id: string | null) => {
-    setOpenId(id);
+    setOpenId((prevId) => {
+      focusAfter.current = { returnTo: prevId };
+      return id;
+    });
     setTab('practica');
     setHash(id);
-    window.scrollTo({ top: 0 });
+    if (id) window.scrollTo({ top: 0 });
+  }, []);
+
+  useEffect(() => {
+    const pending = focusAfter.current;
+    if (!pending) return;
+    focusAfter.current = null;
+    if (openId) {
+      document.getElementById('challenge-title')?.focus();
+    } else if (pending.returnTo) {
+      document.querySelector<HTMLElement>(`[data-challenge-id="${pending.returnTo}"]`)?.focus();
+    }
+  }, [openId]);
+
+  // Atrás/adelante del navegador o la navegación a #desafios: sincroniza el desafío abierto con el hash.
+  useEffect(() => {
+    const on = () => {
+      if (!window.location.hash.startsWith('#desafios')) return;
+      const id = challengeFromHash();
+      setOpenId(id);
+      if (id) setTab('practica');
+    };
+    window.addEventListener('hashchange', on);
+    window.addEventListener('popstate', on);
+    return () => {
+      window.removeEventListener('hashchange', on);
+      window.removeEventListener('popstate', on);
+    };
   }, []);
 
   const tabs: Array<{
@@ -221,11 +255,15 @@ export function Challenges({ onNavigate }: PageProps) {
               onNext={next ? () => open(next.id) : null}
             />
           ) : (
-            <ChallengeList challenges={CHALLENGES} solved={p.challenges} recommendedId={recommended?.id ?? null} onOpen={open} />
+            <>
+              <h2 className="sr-only">Desafíos prácticos</h2>
+              <ChallengeList challenges={CHALLENGES} solved={p.challenges} recommendedId={recommended?.id ?? null} onOpen={open} />
+            </>
           )}
         </div>
 
         <div id={`${tabsId}-panel-quiz`} role="tabpanel" aria-labelledby={`${tabsId}-tab-quiz`} hidden={tab !== 'quiz'} className="pt-6">
+          <h2 className="sr-only">Quiz</h2>
           {/* Montado siempre: cambiar de pestaña no pierde la ronda en curso */}
           <Quiz questions={QUIZ} />
         </div>

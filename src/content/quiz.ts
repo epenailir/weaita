@@ -252,7 +252,7 @@ export const QUIZ: QuizQuestion[] = [
       "Incluye el balance de blancos fijo"
     ],
     "correctIndex": 0,
-    "explanation": "El RAW guarda los datos del sensor con 4096–16 384 niveles por canal, frente a 256 del JPEG, y sin decisiones de contraste ni color irreversibles."
+    "explanation": "El RAW guarda los datos del sensor con 4096–16 384 niveles por canal, frente a 256 del JPEG, y sin decisiones de contraste ni color irreversibles."
   },
   {
     "id": "q19",

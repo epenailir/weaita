@@ -32,7 +32,7 @@ export const SCENES: Record<SceneId, SimScene> = {
   },
   'golden-hour-portrait': {
     id: 'golden-hour-portrait',
-    name: 'Retrato en golden hour',
+    name: 'Retrato en la hora dorada',
     description: 'Contraluz cálido al atardecer. El exposímetro matricial se deja engañar por el cielo brillante.',
     subjectLabel: 'Rostro de la persona',
     lighting: {
@@ -52,8 +52,8 @@ export const SCENES: Record<SceneId, SimScene> = {
   },
   'sports-action': {
     id: 'sports-action',
-    name: 'Deporte a pleno sol',
-    description: 'Un jugador corre a toda velocidad. Para congelarlo hace falta una velocidad de obturación muy alta.',
+    name: 'Deporte con cielo nublado',
+    description: 'Un jugador corre a toda velocidad bajo un cielo nublado brillante. Para congelarlo hace falta una velocidad de obturación muy alta.',
     subjectLabel: 'Jugador',
     lighting: {
       ev100: 13,
@@ -156,7 +156,7 @@ export const SCENES: Record<SceneId, SimScene> = {
     description: 'Autos pasando por una avenida iluminada. Larga exposición para dibujar estelas de luz.',
     subjectLabel: 'Autos',
     lighting: {
-      ev100: 4,
+      ev100: 5,
       illuminantK: 3300,
       subjectDistanceM: 15,
       subjectSpeedMS: 12,

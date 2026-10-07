@@ -203,7 +203,12 @@ export function StopSlider({
             return (
               <span
                 key={i}
-                className={cn('osd absolute -translate-x-1/2 text-[10px] leading-none', i === index ? 'text-amber' : 'text-faint')}
+                className={cn(
+                  'osd absolute text-[10px] leading-none',
+                  // Los extremos se anclan hacia dentro para no salirse del control
+                  i === 0 ? 'translate-x-0' : i === max ? '-translate-x-full' : '-translate-x-1/2',
+                  i === index ? 'text-amber' : 'text-faint',
+                )}
                 style={{ left: `${left}%` }}
               >
                 {o.label}
