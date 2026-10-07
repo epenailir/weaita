@@ -5,3 +5,7 @@ dist-single/
 .DS_Store
 .vite/
 *.tsbuildinfo
+
+# Páginas de laboratorio temporales usadas durante el desarrollo
+*-lab.html
+*-lab.tsx
