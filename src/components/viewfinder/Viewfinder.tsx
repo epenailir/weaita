@@ -175,13 +175,15 @@ export function Viewfinder({
                 {osd.focusLabel}
               </span>
             </div>
-            <div className="flex items-end justify-between gap-[0.9em] @md:gap-[1.3em]">
-              <span className={cn('text-[1.6em] font-medium tracking-tight', blink('shutter'))}>{osd.shutterLabel}</span>
-              <span className={cn('text-[1.6em] font-medium tracking-tight', blink('aperture'))}>
-                <span className="mr-[0.04em] text-[0.62em] font-semibold">F</span>
-                {apertureValue}
-              </span>
-              <div className="min-w-0 max-w-[15em] flex-1 self-center">
+            <div className="flex items-end gap-[0.9em] @md:gap-[1.2em]">
+              <div className="flex shrink-0 items-end gap-[0.9em] @md:gap-[1.2em]">
+                <span className={cn('text-[1.6em] font-medium tracking-tight', blink('shutter'))}>{osd.shutterLabel}</span>
+                <span className={cn('text-[1.6em] font-medium tracking-tight', blink('aperture'))}>
+                  <span className="mr-[0.04em] text-[0.62em] font-semibold">F</span>
+                  {apertureValue}
+                </span>
+              </div>
+              <div className="mx-auto min-w-0 max-w-[15em] flex-1 self-center">
                 <div className="@md:hidden">
                   <ExposureScale value={osd.meterReading} compact />
                 </div>
@@ -189,19 +191,21 @@ export function Viewfinder({
                   <ExposureScale value={osd.meterReading} range={3} />
                 </div>
               </div>
-              {osd.exposureComp !== 0 && (
-                <span className="inline-flex items-center gap-[0.3em] text-[1.15em] font-medium text-amber">
-                  <CompIcon />
-                  {formatThirds(osd.exposureComp)}
+              <div className="flex shrink-0 items-end gap-[0.9em] @md:gap-[1.2em]">
+                {osd.exposureComp !== 0 && (
+                  <span className="inline-flex items-center gap-[0.3em] pb-[0.15em] text-[1.15em] font-medium text-amber">
+                    <CompIcon />
+                    {formatThirds(osd.exposureComp)}
+                  </span>
+                )}
+                <span className={cn('inline-flex items-end gap-[0.3em]', blink('iso'))}>
+                  <span className="flex flex-col items-start pb-[0.2em] text-[0.66em] font-semibold leading-[1.1]">
+                    {osd.autoIso && <span className={cn(osd.limited === 'iso' ? 'text-danger' : 'text-amber')}>AUTO</span>}
+                    <span>ISO</span>
+                  </span>
+                  <span className="text-[1.6em] font-medium tracking-tight">{osd.isoLabel}</span>
                 </span>
-              )}
-              <span className={cn('inline-flex items-end gap-[0.3em]', blink('iso'))}>
-                <span className="flex flex-col items-start text-[0.66em] font-semibold leading-[1.1]">
-                  {osd.autoIso && <span className={cn(osd.limited === 'iso' ? 'text-danger' : 'text-amber')}>AUTO</span>}
-                  <span>ISO</span>
-                </span>
-                <span className="text-[1.6em] font-medium tracking-tight">{osd.isoLabel}</span>
-              </span>
+              </div>
             </div>
           </div>
         </div>
@@ -216,9 +220,9 @@ export function Viewfinder({
             paddingInline: histogram ? 'calc(var(--hist-w) + 1.6em)' : '1em',
           }}
         >
-          {warnings.map((w) => (
+          {warnings.map((w, k) => (
             <span
-              key={w}
+              key={`${k}-${w}`}
               className="inline-flex max-w-full items-center gap-[0.4em] rounded-[0.3em] border border-danger/60 bg-black/65 px-[0.6em] py-[0.35em] text-center font-medium text-danger shadow-[0_2px_8px_rgb(0_0_0/0.4)]"
             >
               <AlertTriangle aria-hidden="true" className="h-[1.1em] w-[1.1em] shrink-0" />

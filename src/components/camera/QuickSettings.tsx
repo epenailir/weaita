@@ -172,8 +172,12 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
               onChange={(metering) => cam.set({ metering })}
               options={(Object.keys(METERING_INFO) as MeteringMode[]).map((m) => ({
                 value: m,
-                icon: <MeteringIcon mode={m} size={16} />,
-                label: <span className="hidden @xs:inline">{METERING_INFO[m].short}</span>,
+                icon: (
+                  <span className="hidden @xs:inline-flex">
+                    <MeteringIcon mode={m} size={16} />
+                  </span>
+                ),
+                label: METERING_INFO[m].short,
                 ariaLabel: METERING_INFO[m].label,
               }))}
             />
@@ -188,7 +192,7 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
             wide
             title="Balance de blancos"
             icon={<Thermometer size={13} />}
-            value={preset ? `${preset.name} · ${formatKelvin(settings.wbK)}` : formatKelvin(settings.wbK)}
+            value={preset ? preset.name : 'Personalizado'}
             note="Ajústalo a la luz de la escena. Con menos Kelvin que la luz real la foto se enfría (azul); con más, se calienta (naranja)."
           >
             <ChipGroup
@@ -235,9 +239,9 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
             value={settings.format}
             note={
               <>
-                {FORMAT_INFO[settings.format]}{' '}
-                <span className="osd text-muted">
-                  ≈ {Math.round(size)} MB por foto · {shots.toLocaleString('es')} fotos en {CARD_CAPACITY_GB} GB.
+                {FORMAT_INFO[settings.format]}
+                <span className="osd mt-1 block text-muted">
+                  ≈ {Math.round(size)} MB por foto · {shots.toLocaleString('es')} fotos en {CARD_CAPACITY_GB} GB
                 </span>
               </>
             }
@@ -262,7 +266,12 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
             title="Sensor"
             icon={<Maximize2 size={13} />}
             value={`×${sensor.crop}`}
-            note={`${sensor.name}: ${sensor.widthMm} × ${sensor.heightMm} mm, ${sensor.megapixels} MP. Una focal de ${settings.focalMm} mm encuadra como ${Math.round(settings.focalMm * sensor.crop)} mm en full frame.`}
+            note={
+              `${sensor.name}: ${sensor.widthMm} × ${sensor.heightMm} mm, ${sensor.megapixels} MP.` +
+              (sensor.crop !== 1
+                ? ` Recorta el encuadre: ${settings.focalMm} mm se ven como ${Math.round(settings.focalMm * sensor.crop)} mm en full frame.`
+                : ' Es la referencia para las focales "equivalentes".')
+            }
           >
             <ChipGroup<SensorId>
               label="Tamaño de sensor"
@@ -335,7 +344,7 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
             wide
             title="Distancia de enfoque"
             icon={<Crosshair size={13} />}
-            value={formatFocus(settings.focusM)}
+            value={`PdC ${Number.isFinite(far) ? formatDistance(far - metrics.dofNearM) : '∞'}`}
             note={
               <>
                 Zona nítida: <span className="osd text-muted">{formatDistance(metrics.dofNearM)}</span> a{' '}
@@ -386,17 +395,15 @@ export function QuickSettings({ cam, show = ALL_KEYS, focalRange }: QuickSetting
             wide
             title="Distancia focal"
             icon={<MoveHorizontal size={13} />}
-            value={`${settings.focalMm} mm`}
+            value={`${fov.toFixed(0)}°`}
             note={
-              <>
-                Ángulo horizontal <span className="osd text-muted">{fov.toFixed(0)}°</span>
-                {sensor.crop !== 1 && (
-                  <>
-                    {' '}· equivale a <span className="osd text-muted">{eq} mm</span> en full frame
-                  </>
-                )}
-                .
-              </>
+              sensor.crop !== 1 ? (
+                <>
+                  Ángulo de visión horizontal de {fov.toFixed(0)}°: equivale a <span className="osd text-muted">{eq} mm</span> en full frame.
+                </>
+              ) : (
+                `Ángulo de visión horizontal de ${fov.toFixed(0)}°. Más focal: encuadre más cerrado y fondo más comprimido.`
+              )
             }
           >
             <StopSlider

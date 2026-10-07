@@ -40,7 +40,7 @@ export interface ExposureControlsProps {
 
 const HINTS = {
   aperture: ['Más luz · fondo desenfocado', 'Menos luz · todo nítido'],
-  shutter: ['Congela el movimiento · menos luz', 'Más luz · barrido y trepidación'],
+  shutter: ['Menos luz · congela el movimiento', 'Más luz · barrido'],
   iso: ['Imagen limpia · menos sensible', 'Más sensible · más ruido'],
   comp: ['Más oscura', 'Más clara'],
 } satisfies Record<string, [string, string]>;

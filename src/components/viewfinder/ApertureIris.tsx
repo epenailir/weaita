@@ -19,6 +19,8 @@ const BLADE_R = 46;
 const TWIST = (38 * Math.PI) / 180;
 /** Desde este tamaño se rotula el número f bajo el diafragma. */
 const LABEL_MIN_SIZE = 72;
+/** Por debajo de este tamaño se dibuja como icono: palas claras y sin detalles finos. */
+const ICON_MAX_SIZE = 48;
 
 type Pt = readonly [number, number];
 
@@ -88,18 +90,24 @@ export function irisBladePaths(rho: number, blades: number): string[] {
   });
 }
 
-function Blade({ paths, index, fill }: { paths: MotionValue<string[]>; index: number; fill: string }) {
+interface BladeStyle {
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+}
+
+function Blade({ paths, index, look }: { paths: MotionValue<string[]>; index: number; look: BladeStyle }) {
   const d = useTransform(paths, (arr) => arr[index] ?? '');
-  return <motion.path d={d} fill={fill} stroke="#050607" strokeWidth={0.7} strokeLinejoin="round" />;
+  return <motion.path d={d} fill={look.fill} stroke={look.stroke} strokeWidth={look.strokeWidth} strokeLinejoin="round" />;
 }
 
 /** Conjunto de palas; se monta de nuevo si cambia su número para recalcular la geometría. */
-function Blades({ rho, count, fill }: { rho: MotionValue<number>; count: number; fill: string }) {
+function Blades({ rho, count, look }: { rho: MotionValue<number>; count: number; look: BladeStyle }) {
   const paths = useTransform(rho, (r) => irisBladePaths(r, count));
   return (
     <>
       {Array.from({ length: count }, (_, k) => (
-        <Blade key={k} paths={paths} index={k} fill={fill} />
+        <Blade key={k} paths={paths} index={k} look={look} />
       ))}
     </>
   );
@@ -124,6 +132,10 @@ export function ApertureIris({ fNumber, blades = 9, size = 96, maxAperture = APE
   const n = Math.max(5, Math.round(blades));
   const label = formatAperture(fNumber);
   const showLabel = size >= LABEL_MIN_SIZE;
+  const icon = size < ICON_MAX_SIZE;
+  const look: BladeStyle = icon
+    ? { fill: '#9aa3aa', stroke: '#15181c', strokeWidth: 2.6 }
+    : { fill: `url(#${uid}-blade)`, stroke: '#08090b', strokeWidth: 0.8 };
 
   return (
     <span className={cn('inline-flex flex-col items-center gap-1.5', className)}>
@@ -142,9 +154,9 @@ export function ApertureIris({ fNumber, blades = 9, size = 96, maxAperture = APE
             <stop offset="100%" stopColor="#030405" />
           </radialGradient>
           <linearGradient id={`${uid}-blade`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3a4249" />
-            <stop offset="55%" stopColor="#22282d" />
-            <stop offset="100%" stopColor="#14181b" />
+            <stop offset="0%" stopColor="#4b545c" />
+            <stop offset="55%" stopColor="#2b3137" />
+            <stop offset="100%" stopColor="#191d21" />
           </linearGradient>
           <linearGradient id={`${uid}-ring`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#2c3238" />
@@ -156,36 +168,46 @@ export function ApertureIris({ fNumber, blades = 9, size = 96, maxAperture = APE
         </defs>
 
         {/* Vidrio visto a través de la abertura, con un reflejo del tratamiento antirreflejo */}
-        <circle cx={C} cy={C} r={BARREL_R} fill={`url(#${uid}-glass)`} />
-        <ellipse cx={40} cy={36} rx={11} ry={6} fill="#ffb224" opacity={0.1} transform="rotate(-30 40 36)" />
-        <ellipse cx={61} cy={63} rx={6} ry={3} fill="#74c7ff" opacity={0.1} transform="rotate(-30 61 63)" />
+        <circle cx={C} cy={C} r={BARREL_R} fill={icon ? '#060708' : `url(#${uid}-glass)`} />
+        {!icon && (
+          <>
+            <ellipse cx={40} cy={36} rx={11} ry={6} fill="#ffb224" opacity={0.1} transform="rotate(-30 40 36)" />
+            <ellipse cx={61} cy={63} rx={6} ry={3} fill="#74c7ff" opacity={0.1} transform="rotate(-30 61 63)" />
+          </>
+        )}
 
         <g clipPath={`url(#${uid}-barrel)`}>
-          <Blades key={n} rho={rho} count={n} fill={`url(#${uid}-blade)`} />
+          <Blades key={n} rho={rho} count={n} look={look} />
         </g>
 
-        {/* Anillo del barril con moleteado */}
-        <path
-          d={`M${C} ${C - 49} a49 49 0 1 0 0.001 0 Z M${C} ${C - BARREL_R} a${BARREL_R} ${BARREL_R} 0 1 1 -0.001 0 Z`}
-          fill={`url(#${uid}-ring)`}
-          fillRule="evenodd"
-        />
-        <circle cx={C} cy={C} r={BARREL_R} fill="none" stroke="#050607" strokeWidth={1.2} />
-        <circle cx={C} cy={C} r={48.6} fill="none" stroke="var(--color-line-strong)" strokeWidth={0.8} />
-        {Array.from({ length: 48 }, (_, i) => {
-          const a = (i / 48) * 2 * Math.PI;
-          return (
-            <line
-              key={i}
-              x1={C + Math.cos(a) * 45.2}
-              y1={C + Math.sin(a) * 45.2}
-              x2={C + Math.cos(a) * 47.6}
-              y2={C + Math.sin(a) * 47.6}
-              stroke="#3d454c"
-              strokeWidth={0.6}
+        {icon ? (
+          <circle cx={C} cy={C} r={46} fill="none" stroke="#9aa3aa" strokeWidth={6} />
+        ) : (
+          <>
+            {/* Anillo del barril con moleteado */}
+            <path
+              d={`M${C} ${C - 49} a49 49 0 1 0 0.001 0 Z M${C} ${C - BARREL_R} a${BARREL_R} ${BARREL_R} 0 1 1 -0.001 0 Z`}
+              fill={`url(#${uid}-ring)`}
+              fillRule="evenodd"
             />
-          );
-        })}
+            <circle cx={C} cy={C} r={BARREL_R} fill="none" stroke="#050607" strokeWidth={1.2} />
+            <circle cx={C} cy={C} r={48.6} fill="none" stroke="var(--color-line-strong)" strokeWidth={0.8} />
+            {Array.from({ length: 48 }, (_, i) => {
+              const a = (i / 48) * 2 * Math.PI;
+              return (
+                <line
+                  key={i}
+                  x1={C + Math.cos(a) * 45.2}
+                  y1={C + Math.sin(a) * 45.2}
+                  x2={C + Math.cos(a) * 47.6}
+                  y2={C + Math.sin(a) * 47.6}
+                  stroke="#3d454c"
+                  strokeWidth={0.6}
+                />
+              );
+            })}
+          </>
+        )}
       </svg>
       {showLabel && (
         <span className="osd text-sm font-medium text-fg" aria-hidden="true">

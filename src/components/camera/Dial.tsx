@@ -54,7 +54,6 @@ const C = 100;
 const R_KNOB = 86;
 const R_FACE = 77;
 const R_CAP = 41;
-const R_LABEL = 58;
 const VERTICAL_PX_PER_STEP = 10;
 
 const isMajor = (o: DialOption) => o.major ?? o.fullStop ?? true;
@@ -207,6 +206,9 @@ export function Dial<T extends DialOption>({
   };
 
   const rotation = -i * step;
+  const rLabel = R_FACE - 13 - labelSize * 0.45;
+  // Si la escala da casi toda la vuelta, las etiquetas lejanas (que quedarían cabeza abajo) se desvanecen
+  const fadeLabels = max * step > 200;
   const readoutSize = readout.length <= 3 ? 30 : readout.length <= 5 ? 24 : readout.length <= 6 ? 21 : 18;
 
   return (
@@ -270,20 +272,21 @@ export function Dial<T extends DialOption>({
 
             {/* Muescas y etiquetas impresas */}
             {options.map((o, k) => {
-              const rel = (k - i) * step;
-              const dist = Math.abs(rel);
-              if (dist > 160) return null;
-              const fade = dist <= 75 ? 1 : Math.max(0.12, 1 - (dist - 75) / 85);
+              const dist = Math.abs((k - i) * step);
+              if (dist > 170) return null;
+              const tickFade = dist <= 90 ? 1 : Math.max(0.25, 1 - (dist - 90) / 80);
+              const labelFade = !fadeLabels || dist <= 60 ? 1 : Math.max(0, 1 - (dist - 60) / 55);
               const angle = k * step;
               const major = isMajor(o);
               const selected = k === i;
               const [tx1, ty1] = polar(R_FACE - 3, angle);
               const [tx2, ty2] = polar(major ? R_FACE - 11 : R_FACE - 7, angle);
               const text = tickLabel ? tickLabel(o, k) : major ? o.label : null;
-              const [lx, ly] = polar(R_LABEL, angle);
+              const [lx, ly] = polar(rLabel, angle);
               return (
-                <g key={k} opacity={fade}>
+                <g key={k}>
                   <line
+                    opacity={tickFade}
                     x1={tx1}
                     y1={ty1}
                     x2={tx2}
@@ -292,8 +295,9 @@ export function Dial<T extends DialOption>({
                     strokeWidth={major ? 1.8 : 1.1}
                     strokeLinecap="round"
                   />
-                  {text && (
+                  {text && labelFade > 0 && (
                     <text
+                      opacity={labelFade}
                       x={lx}
                       y={ly}
                       textAnchor="middle"
@@ -340,7 +344,7 @@ export function Dial<T extends DialOption>({
       </div>
 
       {hints && (
-        <div className="mt-2 flex w-full justify-between gap-3 text-[11px] leading-snug text-faint" style={{ maxWidth: Math.max(size, 200) }}>
+        <div className="mt-2 flex w-full justify-between gap-3 text-[11px] leading-snug text-faint" style={{ maxWidth: Math.max(size + 96, 260) }}>
           <span>{hints[0]}</span>
           <span className="text-right">{hints[1]}</span>
         </div>
