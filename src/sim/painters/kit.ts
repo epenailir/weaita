@@ -1,6 +1,6 @@
 /**
  * Utilidades de dibujo compartidas por los pintores de escena: aleatoriedad con semilla, colores,
- * escalas físicas, degradados, crestas fractales, árboles, rocas y figuras humanas.
+ * escalas físicas, degradados, crestas fractales, pasto, texturas y figuras humanas.
  * Todo se dibuja en unidades de mundo (ver painters/types.ts).
  */
 import { mulberry32 } from '../../engine/noise';
@@ -175,7 +175,7 @@ export function smoothClosed(ctx: CanvasRenderingContext2D, pts: ReadonlyArray<r
 
 /**
  * Cresta fractal (desplazamiento del punto medio) con 2^levels segmentos sobre [x0, x1].
- * Devuelve las alturas relativas (−1…1 aprox.) multiplicadas por `amp`.
+ * Devuelve alturas normalizadas en [−amp/2, amp/2].
  */
 export function ridge(seed: number, levels: number, amp: number, roughness = 0.55): Float32Array {
   const n = 1 << levels;
@@ -193,6 +193,15 @@ export function ridge(seed: number, levels: number, amp: number, roughness = 0.5
     a *= roughness;
     step = half;
   }
+  // Normaliza a [−amp/2, amp/2] para que la amplitud no dependa de la semilla.
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let i = 0; i <= n; i++) {
+    lo = Math.min(lo, h[i]!);
+    hi = Math.max(hi, h[i]!);
+  }
+  const span = hi - lo || 1;
+  for (let i = 0; i <= n; i++) h[i] = ((h[i]! - lo) / span - 0.5) * amp;
   return h;
 }
 
@@ -206,83 +215,6 @@ export function sampleRidge(h: Float32Array, x0: number, x1: number, x: number):
 }
 
 /* ------------------------------------------------------------------ Vegetación */
-
-export interface TreeColors {
-  dark: RGB;
-  mid: RGB;
-  light: RGB;
-  trunk: RGB;
-}
-
-/**
- * Conífera: pisos de ramas dentadas, lado iluminado según `lightX` (−1 izquierda, 1 derecha).
- * `x, yBase` es el pie del tronco; `h` la altura total.
- */
-export function pine(ctx: CanvasRenderingContext2D, x: number, yBase: number, h: number, c: TreeColors, r: Rand, lightX = -1, detail = 1): void {
-  const w = h * r.range(0.26, 0.34);
-  ctx.fillStyle = css(c.trunk);
-  ctx.fillRect(x - h * 0.012, yBase - h * 0.2, h * 0.024, h * 0.2);
-  const tiers = Math.max(4, Math.round(9 * detail));
-  const top = yBase - h;
-  const pts: Array<[number, number]> = [[x, top]];
-  const right: Array<[number, number]> = [];
-  for (let i = 1; i <= tiers; i++) {
-    const t = i / tiers;
-    const y = top + (h * 0.9) * t;
-    const half = (w / 2) * Math.pow(t, 0.9) * r.range(0.85, 1.12);
-    right.push([x + half, y], [x + half * 0.55, y - h * 0.02]);
-    pts.push([x - half, y], [x - half * 0.55, y - h * 0.02]);
-  }
-  pts.pop();
-  ctx.beginPath();
-  ctx.moveTo(x, top);
-  for (const p of pts) ctx.lineTo(p[0], p[1]);
-  ctx.lineTo(x, yBase - h * 0.08);
-  for (let i = right.length - 2; i >= 0; i--) ctx.lineTo(right[i]![0], right[i]![1]);
-  ctx.closePath();
-  ctx.fillStyle = linear(ctx, x - w / 2, 0, x + w / 2, 0, [
-    [0, css(lightX < 0 ? c.light : c.dark)],
-    [0.5, css(c.mid)],
-    [1, css(lightX < 0 ? c.dark : c.light)],
-  ]);
-  ctx.fill();
-}
-
-/** Árbol de copa redonda hecho de racimos con luz lateral. */
-export function broadleaf(ctx: CanvasRenderingContext2D, x: number, yBase: number, h: number, c: TreeColors, r: Rand, lightX = -1, clusters = 14): void {
-  const crownH = h * 0.62;
-  const crownW = h * r.range(0.55, 0.75);
-  const cy = yBase - h + crownH * 0.5;
-  ctx.strokeStyle = css(c.trunk);
-  ctx.lineCap = 'round';
-  ctx.lineWidth = h * 0.045;
-  ctx.beginPath();
-  ctx.moveTo(x, yBase);
-  ctx.quadraticCurveTo(x + h * 0.02, yBase - h * 0.3, x - h * 0.01, cy + crownH * 0.2);
-  ctx.stroke();
-  ctx.lineWidth = h * 0.02;
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo(x, cy + crownH * 0.25);
-    ctx.lineTo(x + (r() - 0.5) * crownW * 0.7, cy - r() * crownH * 0.2);
-    ctx.stroke();
-  }
-  for (let i = 0; i < clusters; i++) {
-    const a = r() * Math.PI * 2;
-    const d = Math.sqrt(r()) * 0.42;
-    const px = x + Math.cos(a) * crownW * d;
-    const py = cy + Math.sin(a) * crownH * d * 0.85;
-    const rr = crownW * r.range(0.16, 0.26);
-    const lit = Math.max(0, Math.min(1, 0.5 + ((px - x) / crownW) * lightX * 1.2 - (py - cy) / crownH));
-    ctx.fillStyle = radial(ctx, px + lightX * rr * 0.3, py - rr * 0.35, rr * 0.1, rr * 1.05, [
-      [0, css(mix(c.mid, c.light, lit))],
-      [0.6, css(mix(c.dark, c.mid, lit))],
-      [1, css(c.dark)],
-    ]);
-    blobPath(ctx, px, py, rr, rr * 0.9, r, 0.22, 10);
-    ctx.fill();
-  }
-}
 
 /** Matas de pasto: trazos finos curvos desde una línea base. */
 export function grassTufts(ctx: CanvasRenderingContext2D, x0: number, x1: number, y: number, h: number, count: number, cols: readonly RGB[], r: Rand, lineW: number): void {
@@ -652,10 +584,25 @@ export function figure(ctx: CanvasRenderingContext2D, x: number, yFeet: number, 
     [1, css(scale(s.skin, lx < 0 ? 0.72 : 1.08))],
   ]);
   ctx.fill();
-  // Oreja
+  // Oreja, ojo, ceja y boca (imperceptibles en figuras lejanas, legibles de cerca)
   ctx.fillStyle = css(scale(s.skin, 0.82));
   ellipse(ctx, headC.x - F * hh * 0.04, headC.y + hh * 0.02, hh * 0.07, hh * 0.11);
   ctx.fill();
+  ctx.fillStyle = 'rgba(30,20,16,0.85)';
+  ellipse(ctx, headC.x + F * hh * 0.27, headC.y - hh * 0.05, hh * 0.035, hh * 0.022);
+  ctx.fill();
+  ctx.strokeStyle = css(scale(s.hair, 0.9), 0.85);
+  ctx.lineWidth = hh * 0.025;
+  ctx.beginPath();
+  ctx.moveTo(headC.x + F * hh * 0.2, headC.y - hh * 0.13);
+  ctx.quadraticCurveTo(headC.x + F * hh * 0.28, headC.y - hh * 0.16, headC.x + F * hh * 0.35, headC.y - hh * 0.12);
+  ctx.stroke();
+  ctx.strokeStyle = css(scale(s.skin, 0.55), 0.8);
+  ctx.lineWidth = hh * 0.02;
+  ctx.beginPath();
+  ctx.moveTo(headC.x + F * hh * 0.4, headC.y + hh * 0.2);
+  ctx.lineTo(headC.x + F * hh * 0.33, headC.y + hh * 0.21);
+  ctx.stroke();
   // Pelo
   ctx.fillStyle = css(s.hair);
   ctx.beginPath();
@@ -709,9 +656,4 @@ export function groundShadow(ctx: CanvasRenderingContext2D, x: number, y: number
 /** Posición periódica (envuelve en [-period/2, period/2)) para sujetos que cruzan en bucle. */
 export function wrapCentered(v: number, period: number): number {
   return v - period * Math.floor(v / period + 0.5);
-}
-
-/** ¿El rectángulo [x, x+w]×[y, y+h] toca el lienzo? */
-export function visible(f: PaintFrame, x: number, y: number, w: number, h: number): boolean {
-  return x + w >= f.x0 && x <= f.x1 && y + h >= f.y0 && y <= f.y1;
 }

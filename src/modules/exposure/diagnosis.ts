@@ -6,6 +6,7 @@
 import { SENSORS, formatAperture, formatIso, formatShutter, handheldLimitS } from '../../engine';
 import type { CameraSettings, Histogram, ResolvedExposure, ShotMetrics } from '../../engine';
 import type { SceneId } from '../../sim/types';
+import { ofSubject } from './sceneBriefs';
 import { adviseAll } from './advice';
 import type { Advice } from './advice';
 import { CRITERION_WEIGHT, STATUS_WORD, assess, cocPct, evText, pctText, shutterText } from './assessment';
@@ -135,7 +136,7 @@ export function viewfinderWarnings(ctx: ShotContext, grades: Grades): string[] {
 
 /* ------------------------------------------------------------------ Región viva */
 
-const word = (c: Criterion | undefined) => (c ? STATUS_WORD[c.status].toLowerCase() : '');
+const word = (c: Criterion) => STATUS_WORD[c.status].toLowerCase();
 
 /** Resumen hablado del resultado actual (se anuncia con retardo tras cada cambio). */
 export function liveSummary(ctx: ShotContext, a: Assessment): string {
@@ -149,12 +150,20 @@ export function liveSummary(ctx: ShotContext, a: Assessment): string {
         : `${m.exposureOffset > 0 ? 'Sobreexpuesta' : 'Subexpuesta'} ${evText(m.exposureOffset)}.`,
     );
   }
-  if (a.motion) parts.push(`Movimiento de ${brief.subject}: ${a.motion.value}, ${word(a.motion)}.`);
-  if (a.stars) parts.push(`Estrellas: ${word(a.stars)}.`);
-  if (a.focus) parts.push(a.focus.status === 'good' ? 'Zona nítida correcta.' : `Zona nítida ${word(a.focus)}: ${a.focus.value}.`);
-  if (a.background && a.background.status !== 'neutral') parts.push(`Fondo ${a.background.value}, ${word(a.background)}.`);
-  if (a.shake && a.shake.status !== 'good') parts.push(`Riesgo de trepidación, ${word(a.shake)}.`);
-  if (a.noise) parts.push(`Ruido ${word(a.noise)}.`);
+  if (a.motion) parts.push(`Barrido ${ofSubject(brief)}: ${a.motion.value} (${word(a.motion)}).`);
+  if (a.stars) parts.push(a.stars.status === 'good' ? 'Estrellas puntuales.' : `Estrellas con trazos (${word(a.stars)}).`);
+  if (a.focus) parts.push(a.focus.status === 'good' ? 'Zona nítida correcta.' : `Zona nítida insuficiente: ${a.focus.value} (${word(a.focus)}).`);
+  if (a.background && a.background.status !== 'neutral') parts.push(`Fondo desenfocado ${a.background.value} (${word(a.background)}).`);
+  if (a.shake && a.shake.status !== 'good') parts.push(`Riesgo de trepidación (${word(a.shake)}).`);
+  parts.push(`Ruido ${noiseLevel(m.noiseScore)}.`);
   if (a.limit && a.limit.status === 'bad') parts.push(`${a.limit.value}.`);
   return parts.join(' ');
+}
+
+function noiseLevel(score: number): string {
+  if (score <= 18) return 'muy bajo';
+  if (score <= 30) return 'bajo';
+  if (score <= 56) return 'moderado';
+  if (score <= 70) return 'alto';
+  return 'muy alto';
 }

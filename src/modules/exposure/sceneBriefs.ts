@@ -30,6 +30,8 @@ export interface SceneBrief {
   goal: string;
   /** Sujeto en minúsculas para frases ("el ciclista"). */
   subject: string;
+  /** El sujeto es plural ("las estrellas"): concuerda los verbos. */
+  plural?: boolean;
   motion: MotionIntent;
   background: BackgroundIntent;
   focus: FocusIntent;
@@ -51,7 +53,7 @@ export const SCENE_BRIEFS: Record<SceneId, SceneBrief> = {
     goal: 'Congela al ciclista y separa el fondo de las luces.',
     subject: 'el ciclista',
     motion: { kind: 'freeze', goodPx: 3, fairPx: 8 },
-    background: { kind: 'bokeh', goodPct: 0.5, fairPct: 0.2 },
+    background: { kind: 'bokeh', goodPct: 0.45, fairPct: 0.2 },
     focus: 'subject',
     noise: { good: 30, fair: 56 },
     clipTolerancePct: 1.5,
@@ -92,6 +94,7 @@ export const SCENE_BRIEFS: Record<SceneId, SceneBrief> = {
     anchor: 'Nublado brillante en la montaña',
     goal: 'Todo nítido, de las rocas cercanas a las montañas, con la máxima calidad.',
     subject: 'las rocas del primer plano',
+    plural: true,
     motion: { kind: 'none' },
     background: { kind: 'none' },
     focus: 'deep',
@@ -106,6 +109,7 @@ export const SCENE_BRIEFS: Record<SceneId, SceneBrief> = {
     anchor: 'Cielo sin luna, lejos de la ciudad',
     goal: 'Estrellas puntuales y la Vía Láctea bien visible.',
     subject: 'las estrellas',
+    plural: true,
     motion: { kind: 'none' },
     background: { kind: 'none' },
     focus: 'infinity',
@@ -148,6 +152,7 @@ export const SCENE_BRIEFS: Record<SceneId, SceneBrief> = {
     anchor: 'Avenida iluminada de noche',
     goal: 'Dibujar las estelas de luz de los autos.',
     subject: 'los autos',
+    plural: true,
     motion: { kind: 'blur', goodPx: 300, fairPx: 80 },
     background: { kind: 'none' },
     focus: 'subject',
@@ -214,4 +219,25 @@ export function sceneSettings(scene: SimScene): Partial<CameraSettings> {
 
 export function sceneById(id: SceneId): SimScene {
   return SCENES[id];
+}
+
+/* ------------------------------------------------------------------ Gramática del sujeto */
+
+/** Verbo concordado con el sujeto de la escena. */
+export function verbFor(brief: SceneBrief, singular: string, plural: string): string {
+  return brief.plural ? plural : singular;
+}
+
+/** "de" + sujeto con contracción: "del ciclista", "de las estrellas". */
+export function ofSubject(brief: SceneBrief): string {
+  return brief.subject.startsWith('el ') ? `del ${brief.subject.slice(3)}` : `de ${brief.subject}`;
+}
+
+/** "a" + sujeto con contracción: "al ciclista", "a las estrellas". */
+export function toSubject(brief: SceneBrief): string {
+  return brief.subject.startsWith('el ') ? `al ${brief.subject.slice(3)}` : `a ${brief.subject}`;
+}
+
+export function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

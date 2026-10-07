@@ -487,13 +487,11 @@ export function plazaPainter(scene: SimScene): ScenePainter {
     const hl = new Path2D();
     const r = rand(5);
     let d = 2.2;
-    let row = 0;
     while (d < BG) {
       const depth = 0.12 + r() * 0.02;
       const y0 = gy(d + depth);
       const y1 = gy(d);
       d += depth;
-      row++;
       if (y0 > f.y1 || y1 < f.y0) continue;
       const rowH = y1 - y0;
       // Más lejos los adoquines miden menos de 4 px: basta la textura.
@@ -513,18 +511,27 @@ export function plazaPainter(scene: SimScene): ScenePainter {
         x += sw;
       }
     }
-    void row;
     shades.forEach((s, i) => {
       ctx.fillStyle = s;
       ctx.fill(paths[i]!);
     });
     ctx.fillStyle = 'rgba(255,214,180,0.16)';
     ctx.fill(hl);
+    // Más allá, las filas de adoquines se comprimen en líneas finas alternas.
+    const rows = new Path2D();
+    for (let dd = d; dd < BG; dd += 0.14) {
+      const ya = gy(dd + 0.14);
+      const yb = gy(dd);
+      if (yb - ya < f.px * 0.7) break;
+      rows.rect(f.x0, ya, f.x1 - f.x0, (yb - ya) * 0.22);
+    }
+    ctx.fillStyle = 'rgba(40,32,30,0.22)';
+    ctx.fill(rows);
     ctx.save();
     ctx.beginPath();
     ctx.rect(f.x0, top, f.x1 - f.x0, bottom - top);
     ctx.clip();
-    grain(ctx, f.x0, top, f.x1 - f.x0, bottom - top, 0.3, u(1, 4));
+    grain(ctx, f.x0, top, f.x1 - f.x0, bottom - top, 0.14, u(0.6, 4));
     ctx.restore();
     // Brillo del cielo en el adoquín lejano; viñeta hacia la cámara.
     ctx.fillStyle = linear(ctx, 0, top, 0, bottom, [
@@ -1001,7 +1008,19 @@ export function plazaPainter(scene: SimScene): ScenePainter {
       { id: 'suelo', distanceM: 10, plane: { horizonY: HZ, cameraHeightM: CAM_H, farM: BG }, paint: paintGround },
       { id: 'plaza-fondo', distanceM: 26, paint: paintPlazaBack, emitters: plazaBackLights },
       { id: 'guirnaldas', distanceM: 20, paint: paintStrings, emitters: stringLights },
-      { id: 'ciclista', distanceM: SUBJ, animated: true, motion: { speedMS: SPEED, dirX: -1, dirY: 0 }, paint: paintCyclist },
+      {
+        id: 'ciclista',
+        distanceM: SUBJ,
+        animated: true,
+        motion: { speedMS: SPEED, dirX: -1, dirY: 0 },
+        paint: paintCyclist,
+        bounds: (f) => {
+          const k = u(1, SUBJ);
+          const cx = BIKE_X - u(SPEED, SUBJ) * wrapCentered(f.timeS, LOOP_S);
+          const base = gy(SUBJ);
+          return { x0: cx - k * 1.05, x1: cx + k * 1.05, y0: base - k * 1.9, y1: base + k * 0.12 };
+        },
+      },
       { id: 'olivo', distanceM: FG, paint: paintPlanter },
     ],
   };

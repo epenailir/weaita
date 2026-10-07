@@ -43,7 +43,8 @@ export function resetContext(ctx: CanvasRenderingContext2D): void {
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  // Bilineal: suficiente para reescalar imágenes ya desenfocadas y mucho más barato en CPU.
+  ctx.imageSmoothingQuality = 'low';
   if ('filter' in ctx) ctx.filter = 'none';
 }
 
@@ -173,48 +174,58 @@ export class BlurKit {
     this.nativeFilter = supportsCanvasFilter();
   }
 
-  /** Dibuja src reducido a (w×h) en dst, por mitades sucesivas para promediar bien (sin aliasing). */
-  private drawScaled(src: HTMLCanvasElement, dst: Surface, x: number, y: number, w: number, h: number): void {
+  /**
+   * Dibuja la región (sx, sy, sw, sh) de src reducida a (w×h) en dst, por mitades sucesivas para
+   * promediar bien (sin aliasing).
+   */
+  private drawScaled(src: HTMLCanvasElement, sx: number, sy: number, sw: number, sh: number, dst: Surface, x: number, y: number, w: number, h: number): void {
     let cur: HTMLCanvasElement = src;
-    let cw = src.width;
-    let ch = src.height;
+    let cx = sx;
+    let cy = sy;
+    let cw = sw;
+    let ch = sh;
     let flip = false;
     while (cw / w > 2.2 || ch / h > 2.2) {
       const nw = Math.max(Math.ceil(w), Math.ceil(cw / 2));
       const nh = Math.max(Math.ceil(h), Math.ceil(ch / 2));
       const t = flip ? this.halfB : this.halfA;
       sizeSurface(t, nw, nh);
-      t.ctx.drawImage(cur, 0, 0, cw, ch, 0, 0, nw, nh);
+      t.ctx.drawImage(cur, cx, cy, cw, ch, 0, 0, nw, nh);
       cur = t.canvas;
+      cx = 0;
+      cy = 0;
       cw = nw;
       ch = nh;
       flip = !flip;
     }
-    dst.ctx.drawImage(cur, 0, 0, cw, ch, x, y, w, h);
+    dst.ctx.drawImage(cur, cx, cy, cw, ch, x, y, w, h);
   }
 
   /**
-   * Gaussiana de desviación `sigma` px sobre `src`; el resultado (mismo tamaño) queda en `out`.
-   * `out` no puede ser el mismo canvas que `src`.
+   * Gaussiana de desviación `sigma` px sobre `src` (o sobre la región `rect` de src); el
+   * resultado, del tamaño de la región, queda en `out`. `out` no puede ser el canvas `src`.
    */
-  gaussian(src: HTMLCanvasElement, sigma: number, out: Surface): void {
-    const sw = src.width;
-    const sh = src.height;
+  gaussian(src: HTMLCanvasElement, sigma: number, out: Surface, rect?: { x: number; y: number; w: number; h: number }): void {
+    const rx = rect ? rect.x : 0;
+    const ry = rect ? rect.y : 0;
+    const sw = rect ? rect.w : src.width;
+    const sh = rect ? rect.h : src.height;
     sizeSurface(out, sw, sh);
     if (sigma < 0.3) {
-      out.ctx.drawImage(src, 0, 0);
+      out.ctx.drawImage(src, rx, ry, sw, sh, 0, 0, sw, sh);
       return;
     }
-    // Con sigma grande se trabaja a 1/ds de resolución con una sigma residual de ~2 px.
-    const ds = sigma > 2.6 ? Math.min(sigma / 2, 48) : 1;
+    // Con sigma grande se trabaja a 1/ds de resolución con una sigma residual de ~1.5 px:
+    // la imagen ya no tiene detalle fino, así que el resultado es indistinguible y mucho más barato.
+    const ds = sigma > 1.8 ? Math.min(sigma / 1.5, 64) : 1;
     const sig = sigma / ds;
     const lw = Math.max(1, Math.ceil(sw / ds));
     const lh = Math.max(1, Math.ceil(sh / ds));
     const pad = Math.ceil(sig * 3) + 2;
     const A = this.a;
     sizeSurface(A, lw + pad * 2, lh + pad * 2);
-    if (ds === 1) A.ctx.drawImage(src, pad, pad);
-    else this.drawScaled(src, A, pad, pad, lw, lh);
+    if (ds === 1) A.ctx.drawImage(src, rx, ry, sw, sh, pad, pad, sw, sh);
+    else this.drawScaled(src, rx, ry, sw, sh, A, pad, pad, lw, lh);
     clampEdges(A, pad, pad, lw, lh);
     let blurred: HTMLCanvasElement;
     if (this.nativeFilter) {
@@ -272,7 +283,7 @@ export class BlurKit {
     let nxt = this.b;
     sizeSurface(cur, lw + padX * 2, lh + padY * 2);
     if (sx === 1 && sy === 1) cur.ctx.drawImage(src, padX, padY);
-    else this.drawScaled(src, cur, padX, padY, lw, lh);
+    else this.drawScaled(src, 0, 0, sw, sh, cur, padX, padY, lw, lh);
     clampEdges(cur, padX, padY, lw, lh);
     const k = Math.max(1, Math.ceil(Math.log2(L)));
     for (let j = 1; j <= k; j++) {

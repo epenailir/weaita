@@ -36,8 +36,9 @@ export function fmtTime(t: number): string {
   return l.endsWith('"') ? `${l.slice(0, -1)} s` : `${l} s`;
 }
 
-/** Longitudes pequeñas (desplazamientos): mm, cm o m. */
+/** Longitudes pequeñas (desplazamientos): µm, mm, cm o m. */
 export function fmtLength(m: number): string {
+  if (m < 0.001) return `${Math.round(m * 1e6)} µm`;
   if (m < 0.01) return `${(m * 1000).toFixed(m * 1000 < 9.95 ? 1 : 0)} mm`;
   if (m < 1) return `${(m * 100).toFixed(m * 100 < 9.95 ? 1 : 0)} cm`;
   return formatDistance(m);
@@ -59,4 +60,19 @@ export function fmtMicrons(mm: number): string {
 
 export function fmtSpeed(ms: number): string {
   return `${num(ms, 1)} m/s`;
+}
+
+/** Zona compacta para tablas: "2.93–3.07 m", "1.70 m–∞". */
+export function fmtZoneShort(near: number, far: number): string {
+  const n = formatDistance(near);
+  const f = formatDistance(far);
+  const unit = (x: string) => x.replace(/^[\d.]+\s*/, '');
+  if (Number.isFinite(far) && unit(n) === unit(f)) return `${n.replace(/\s*\S+$/, '')}–${f}`;
+  return `${n}–${f}`;
+}
+
+/** Comparación de tamaños: "tan grande como", "1.4 veces". */
+export function timesText(ratio: number): string {
+  if (ratio > 0.95 && ratio < 1.05) return 'tan grande como';
+  return `${num(ratio)} veces`;
 }

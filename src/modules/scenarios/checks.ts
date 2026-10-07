@@ -11,6 +11,7 @@ import {
   formatDistance,
   formatIso,
   formatKelvin,
+  formatShutter,
   handheldLimitS,
   miredShift,
   motionBlurPx,
@@ -20,7 +21,7 @@ import {
 import { METERING_INFO } from '../../components/viewfinder';
 import { formatFocus } from '../../components/viewfinder';
 import type { MeteringMode } from '../../engine';
-import { fmtDepth, fmtEV, fmtLength, fmtMicrons, fmtPct, fmtPx, fmtSpeed, fmtStopsAbs, fmtTime, fmtZone, num } from './format';
+import { fmtDepth, fmtEV, fmtLength, fmtMicrons, fmtPct, fmtPx, fmtSpeed, fmtStopsAbs, fmtTime, fmtZone, fmtZoneShort, num, timesText } from './format';
 import { isInfinity } from './model';
 import type { ShotContext } from './model';
 
@@ -49,7 +50,7 @@ export const EXPOSURE_TOLERANCE = 0.34;
 /** Ancho de referencia con el que el motor expresa los desenfoques en px. */
 const REF_WIDTH_PX = 1000;
 
-const LIMITED_NAME = { aperture: 'la apertura', shutter: 'la velocidad', iso: 'el Auto-ISO' } as const;
+const LIMITED_NAME = { aperture: 'de la apertura', shutter: 'de la velocidad', iso: 'del Auto-ISO' } as const;
 
 /** Medición que menos se equivoca en esta escena. */
 function bestMetering(c: ShotContext): MeteringMode {
@@ -61,7 +62,7 @@ function bestMetering(c: ShotContext): MeteringMode {
 export function exposureFix(c: ShotContext): string {
   const v = c.m.exposureOffset;
   if (c.limited) {
-    return `El automatismo llegó al límite de ${LIMITED_NAME[c.limited]}: la foto queda en ${fmtEV(v)}. Cambia otro parámetro para que la cámara tenga margen.`;
+    return `El automatismo llegó al límite ${LIMITED_NAME[c.limited]}: la foto queda en ${fmtEV(v)}. Cambia otro parámetro para que la cámara tenga margen.`;
   }
   const cameraDecides = c.s.mode !== 'M' || c.s.autoIso;
   if (cameraDecides) {
@@ -107,7 +108,7 @@ export const shakeCheck: Check = {
     const pass = c.m.shakeRatio <= 1;
     return {
       pass,
-      value: c.s.tripod ? 'trípode' : `${fmtTime(c.s.shutter)} · límite ${fmtTime(limit)}`,
+      value: c.s.tripod ? 'trípode' : `${formatShutter(c.s.shutter)} / ${formatShutter(limit)}`,
       fix: pass
         ? ''
         : `A pulso con ${c.s.focalMm} mm necesitas ${fmtTime(limit)} o menos y usas ${fmtTime(c.s.shutter)} (${num(c.m.shakeRatio)}× más lento). ` +
@@ -166,7 +167,7 @@ export function subjectSharpCheck(label: string, subject: string): Check {
       const pass = c.m.dofNearM <= d && d <= c.m.dofFarM;
       return {
         pass,
-        value: fmtZone(c.m.dofNearM, c.m.dofFarM),
+        value: fmtZoneShort(c.m.dofNearM, c.m.dofFarM),
         fix: pass
           ? ''
           : `${subject} está a ${formatDistance(d)} y la zona nítida va de ${fmtZone(c.m.dofNearM, c.m.dofFarM)}: enfoca a ${formatDistance(d)}.`,
@@ -276,7 +277,7 @@ export function foregroundCheck(fgM: number): Check {
       const fix = pass
         ? ''
         : isInfinity(c.s.focusM)
-          ? `Enfocaste al infinito: la zona nítida empieza en ${formatDistance(c.m.dofNearM)} y las rocas a ${formatDistance(fgM)} salen blandas. Enfoca a la hiperfocal (${formatDistance(c.m.hyperfocalM)}).`
+          ? `Enfocaste al infinito: la zona nítida empieza en ${formatDistance(c.m.dofNearM)} y el primer plano a ${formatDistance(fgM)} sale blando. Enfoca a la hiperfocal (${formatDistance(c.m.hyperfocalM)}).`
           : `La zona nítida empieza en ${formatDistance(c.m.dofNearM)}: enfoca más cerca (hiperfocal ${formatDistance(c.m.hyperfocalM)}) o cierra el diafragma.`;
       return { pass, value: `desde ${formatDistance(c.m.dofNearM)}`, fix };
     },
@@ -317,7 +318,7 @@ export const diffractionCheck: Check = {
       value: `Airy ${fmtMicrons(airy)}`,
       fix: pass
         ? ''
-        : `A ${formatAperture(c.s.aperture)} el disco de Airy mide ${fmtMicrons(airy)}, ${num(airy / c.sensor.cocMm)}× el círculo de confusión (${fmtMicrons(c.sensor.cocMm)}): todo se ablanda. Vuelve a f/8–f/11.`,
+        : `A ${formatAperture(c.s.aperture)} el disco de Airy mide ${fmtMicrons(airy)}, ${timesText(airy / c.sensor.cocMm)} el círculo de confusión (${fmtMicrons(c.sensor.cocMm)}): todo se ablanda. Vuelve a f/8–f/11.`,
     };
   },
   why: (c) =>
@@ -335,7 +336,7 @@ export const starsCheck: Check = {
     const pass = c.m.starTrailRatio <= 1.001;
     return {
       pass,
-      value: `${fmtTime(c.s.shutter)} · límite ${fmtTime(max)}`,
+      value: `${formatShutter(c.s.shutter)} / ${formatShutter(max)}`,
       fix: pass
         ? ''
         : `Con ${c.s.focalMm} mm el límite es ${fmtTime(max)} y expones ${fmtTime(c.s.shutter)} (${num(c.m.starTrailRatio)}×): las estrellas dejan trazo. Acorta el tiempo y compensa con apertura o ISO.`,
@@ -399,12 +400,12 @@ export function zoneCheck(nearM: number, farM: number): Check {
       const focusOff = Math.abs(Math.log(Math.min(c.s.focusM, 1e6) / 3)) > 0.35;
       return {
         pass,
-        value: fmtZone(c.m.dofNearM, c.m.dofFarM),
+        value: fmtZoneShort(c.m.dofNearM, c.m.dofFarM),
         fix: pass
           ? ''
           : `Tu zona nítida va de ${fmtZone(c.m.dofNearM, c.m.dofFarM)} y no cubre de ${num(nearM, 0)} a ${num(farM, 0)} m. ` +
-            (focusOff ? 'Prefija el enfoque cerca de 3 m y ' : '') +
-            'cierra el diafragma: cada paso más cerrado la amplía.',
+            (focusOff ? 'Prefija el enfoque cerca de 3 m y cierra' : 'Cierra') +
+            ' el diafragma: cada paso más cerrado la amplía.',
       };
     },
     why: (c) =>

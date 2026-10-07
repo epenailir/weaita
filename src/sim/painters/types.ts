@@ -94,6 +94,18 @@ export interface SceneLayer {
   noPeaking?: boolean;
   paint?(ctx: CanvasRenderingContext2D, f: PaintFrame): void;
   emitters?(f: PaintFrame): Emitter[];
+  /**
+   * Solo capas animadas: rectángulo de mundo que ocupa el contenido en este instante (o null si
+   * no hay nada visible). Permite pintar y desenfocar solo esa región en cada cuadro.
+   */
+  bounds?(f: PaintFrame): WorldRect | null;
+}
+
+export interface WorldRect {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
 }
 
 export interface ScenePainter {

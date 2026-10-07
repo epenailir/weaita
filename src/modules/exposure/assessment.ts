@@ -16,6 +16,7 @@ import {
 } from '../../engine';
 import type { CameraSettings, ResolvedExposure, SensorFormat, ShotMetrics } from '../../engine';
 import type { SimScene } from '../../sim/types';
+import { verbFor } from './sceneBriefs';
 import type { SceneBrief } from './sceneBriefs';
 
 export type Status = 'good' | 'fair' | 'bad' | 'neutral';
@@ -234,7 +235,8 @@ export function gradeNoise(m: ShotMetrics, brief: SceneBrief): Status {
 
 export function gradeDynamicRange(m: ShotMetrics, scene: SimScene): Status {
   const deficit = scene.lighting.sceneContrastStops - m.dynamicRangeStops;
-  if (deficit <= 0) return 'good';
+  // Hasta un paso de déficit se recupera en RAW sin problema.
+  if (deficit <= 1) return 'good';
   const isoLoss = dynamicRangeStops(100) - m.dynamicRangeStops;
   if (isoLoss < 1) return 'fair';
   return deficit > 1.5 ? 'bad' : 'fair';
@@ -243,7 +245,7 @@ export function gradeDynamicRange(m: ShotMetrics, scene: SimScene): Status {
 export function gradeWhiteBalance(s: CameraSettings, scene: SimScene, brief: SceneBrief): Status {
   const shift = wbShiftMired(s.wbK, scene.lighting.illuminantK);
   const abs = Math.abs(shift);
-  if (abs <= 20) return 'good';
+  if (abs <= 30) return 'good';
   if (brief.wb === 'warm-ok' && shift < 0 && abs <= 160) return 'good';
   if (abs <= 60) return 'fair';
   return s.format === 'JPEG' ? 'bad' : 'fair';
@@ -317,7 +319,7 @@ export function criterionValue(id: CriterionId, ctx: ShotContext): string {
     case 'motion':
       return pxText(m.subjectMotionBlurPx);
     case 'shake':
-      return e.tripod ? 'Trípode' : `×${m.shakeRatio.toFixed(1)} del límite`;
+      return e.tripod ? 'Trípode' : m.shakeRatio < 0.1 ? 'muy por debajo del límite' : `×${m.shakeRatio.toFixed(1)} del límite`;
     case 'stars':
       return `${shutterText(e.shutter)} / máx. ${shutterText(m.maxStarExposureS)}`;
     case 'focus':
@@ -388,14 +390,15 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
     case 'motion': {
       const intent = brief.motion;
       const px = pxText(m.subjectMotionBlurPx);
+      const v = (sing: string, plur: string) => verbFor(brief, sing, plur);
       if (intent.kind === 'blur') {
         return {
           ...base,
           target: `≥ ${intent.goodPx} px`,
           detail:
             status === 'good'
-              ? `Con ${shutterText(e.shutter)}, ${brief.subject} recorre ${px} durante la exposición: el movimiento se convierte en una estela continua.`
-              : `Con ${shutterText(e.shutter)}, ${brief.subject} solo recorre ${px}: el movimiento queda casi congelado. El efecto buscado pide ${intent.goodPx} px o más.`,
+              ? `Con ${shutterText(e.shutter)}, ${brief.subject} ${v('recorre', 'recorren')} ${px} durante la exposición: el movimiento se convierte en una estela continua.`
+              : `Con ${shutterText(e.shutter)}, ${brief.subject} solo ${v('recorre', 'recorren')} ${px}: el movimiento casi no se nota. El efecto buscado pide ${intent.goodPx} px o más.`,
         };
       }
       const good = intent.kind === 'freeze' ? intent.goodPx : 0;
@@ -404,8 +407,8 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
         target: `≤ ${good} px`,
         detail:
           status === 'good'
-            ? `Con ${shutterText(e.shutter)}, ${brief.subject} se desplaza ${px} durante la exposición: queda congelado.`
-            : `Con ${shutterText(e.shutter)}, ${brief.subject} se desplaza ${px} durante la exposición y sale barrido. Para congelarlo hace falta ${good} px o menos.`,
+            ? `Con ${shutterText(e.shutter)}, ${brief.subject} se ${v('desplaza', 'desplazan')} ${px} durante la exposición: el movimiento queda congelado.`
+            : `Con ${shutterText(e.shutter)}, ${brief.subject} se ${v('desplaza', 'desplazan')} ${px} durante la exposición: aparece barrido. Para congelar el movimiento hace falta ${good} px o menos.`,
       };
     }
 
@@ -420,7 +423,9 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
           ? 'La cámara está sobre trípode: el temblor de las manos no cuenta.'
           : status === 'good'
             ? `Con ${e.focalMm} mm${crop}${stab}, el límite a pulso es ${shutterText(limit)}; usaste ${shutterText(e.shutter)}: sin trepidación.`
-            : `Con ${e.focalMm} mm${crop}${stab}, el límite a pulso es ${shutterText(limit)}; usaste ${shutterText(e.shutter)}, ${m.shakeRatio.toFixed(1)} veces más: toda la imagen sale temblada.`,
+            : status === 'fair'
+              ? `Con ${e.focalMm} mm${crop}${stab}, el límite a pulso es ${shutterText(limit)}; usaste ${shutterText(e.shutter)}, ${m.shakeRatio.toFixed(1)} veces más: riesgo de una trepidación leve que resta nitidez a toda la imagen.`
+              : `Con ${e.focalMm} mm${crop}${stab}, el límite a pulso es ${shutterText(limit)}; usaste ${shutterText(e.shutter)}, ${m.shakeRatio.toFixed(1)} veces más: toda la imagen sale temblada.`,
       };
     }
 
@@ -463,8 +468,8 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
         target: `Incluir ${formatDistance(d)}`,
         detail:
           status === 'good'
-            ? `Zona nítida de ${range}: ${brief.subject}, a ${formatDistance(d)}, queda dentro.`
-            : `Zona nítida de ${range}: ${brief.subject}, a ${formatDistance(d)}, queda fuera y sale blando.`,
+            ? `Zona nítida de ${range}: ${brief.subject}, a ${formatDistance(d)}, ${verbFor(brief, 'queda', 'quedan')} dentro.`
+            : `Zona nítida de ${range}: ${brief.subject}, a ${formatDistance(d)}, ${verbFor(brief, 'queda', 'quedan')} fuera y ${verbFor(brief, 'pierde', 'pierden')} nitidez.`,
       };
     }
 
@@ -515,7 +520,9 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
         detail:
           deficit <= 0
             ? `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: cabe entera.`
-            : `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: ${deficit.toFixed(1)} pasos se perderán en luces o sombras.`,
+            : deficit <= 1
+              ? `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: casi cabe, y en RAW se recupera el resto.`
+              : `La escena tiene ${contrast} pasos de contraste y a ISO ${formatIso(e.iso)} el sensor registra ${m.dynamicRangeStops.toFixed(1)}: ${deficit.toFixed(1)} pasos se perderán en luces o sombras.`,
       };
     }
 
@@ -527,7 +534,7 @@ function describe(id: CriterionId, status: Status, ctx: ShotContext): Criterion 
         target: `≈ ${formatKelvin(scene.lighting.illuminantK)}`,
         detail:
           status === 'good'
-            ? `La luz es de unos ${formatKelvin(scene.lighting.illuminantK)} y la cámara está en ${formatKelvin(e.wbK)}: colores ${Math.abs(shift) <= 20 ? 'neutros' : 'con la calidez buscada'}.`
+            ? `La luz es de unos ${formatKelvin(scene.lighting.illuminantK)} y la cámara está en ${formatKelvin(e.wbK)}: colores ${Math.abs(shift) <= 30 ? 'neutros' : 'con la calidez buscada'}.`
             : `La luz es de unos ${formatKelvin(scene.lighting.illuminantK)} y la cámara está en ${formatKelvin(e.wbK)}: dominante ${cast}. ${e.format === 'JPEG' ? 'En JPEG queda grabada.' : 'En RAW se corrige después sin pérdida.'}`,
       };
     }

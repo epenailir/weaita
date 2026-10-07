@@ -38,6 +38,7 @@ import {
   stopsText,
 } from './assessment';
 import type { CriterionId, Grades, ShotContext, Status } from './assessment';
+import { verbFor } from './sceneBriefs';
 
 export type AdjustKey =
   | 'aperture'
@@ -234,6 +235,11 @@ function triadLabel(key: TriadKey, v: number): string {
   return `ISO ${formatIso(v)}`;
 }
 
+/** Valor para las fichas de cambio (la etiqueta ya dice "ISO"). */
+function chipValue(key: TriadKey, v: number): string {
+  return key === 'iso' ? formatIso(v) : triadLabel(key, v);
+}
+
 /** Pasos de luz que aporta pasar de a a b en cada parámetro (positivo = más luz o más brillo). */
 function lightStops(key: TriadKey, a: number, b: number): number {
   return key === 'aperture' ? stops.aperture(a, b) : key === 'shutter' ? stops.shutter(a, b) : stops.iso(a, b);
@@ -244,7 +250,7 @@ function describeChanges(a: CameraSettings, b: CameraSettings): Change[] {
   const NAMES: Record<TriadKey, string> = { aperture: 'Apertura', shutter: 'Velocidad', iso: 'ISO' };
   for (const k of ['aperture', 'shutter', 'iso'] as const) {
     if (indexOf(k, a[k]) === indexOf(k, b[k])) continue;
-    out.push({ key: k, label: NAMES[k], from: triadLabel(k, a[k]), to: triadLabel(k, b[k]), delta: stopsText(lightStops(k, a[k], b[k])) });
+    out.push({ key: k, label: NAMES[k], from: chipValue(k, a[k]), to: chipValue(k, b[k]), delta: stopsText(lightStops(k, a[k], b[k])) });
   }
   if (a.exposureComp !== b.exposureComp) {
     out.push({ key: 'exposureComp', label: 'Compensación', from: evText(a.exposureComp), to: evText(b.exposureComp) });
@@ -316,12 +322,35 @@ function verb(c: Change, a: CameraSettings, b: CameraSettings): string {
   }
 }
 
-/** Peso del cambio para decidir cuál es el principal. */
+/** Parámetros que explican mejor cada criterio, en orden de preferencia. */
+const PRIMARY: Partial<Record<CriterionId, AdjustKey[]>> = {
+  exposure: ['exposureComp', 'metering'],
+  motion: ['shutter', 'tripod', 'aperture', 'iso', 'focalMm'],
+  shake: ['tripod', 'stabilizationStops', 'shutter', 'aperture', 'iso', 'focalMm'],
+  stars: ['shutter', 'focalMm'],
+  focus: ['focusM', 'aperture'],
+  background: ['aperture', 'focalMm'],
+  noise: ['iso'],
+  diffraction: ['aperture'],
+  dynamicRange: ['iso'],
+};
+
+/** Peso del cambio para decidir cuál es el principal cuando no hay preferencia. */
 function weightOf(c: Change, a: CameraSettings, b: CameraSettings): number {
   if (c.key === 'aperture' || c.key === 'shutter' || c.key === 'iso') return Math.abs(lightStops(c.key, a[c.key], b[c.key]));
-  if (c.key === 'tripod' || c.key === 'stabilizationStops') return 10;
+  if (c.key === 'tripod' || c.key === 'stabilizationStops') return 0.5;
   if (c.key === 'focusM' || c.key === 'metering') return 6;
   return 3;
+}
+
+/** Ordena los cambios: primero el que mejor explica el criterio, luego por magnitud. */
+function rankChanges(criterion: CriterionId, changes: Change[], a: CameraSettings, b: CameraSettings): Change[] {
+  const pref = PRIMARY[criterion] ?? [];
+  const rank = (c: Change) => {
+    const i = pref.indexOf(c.key);
+    return i < 0 ? pref.length : i;
+  };
+  return [...changes].sort((x, y) => rank(x) - rank(y) || weightOf(y, a, b) - weightOf(x, a, b));
 }
 
 /** Explicación física de por qué el cambio principal arregla el criterio. */
@@ -330,20 +359,22 @@ function reasonFor(criterion: CriterionId, main: Change, a: CameraSettings, b: C
   const auto = autoControlled(a);
   const viaCamera = mode !== 'M' && (main.key === 'iso' || main.key === 'aperture' || main.key === 'exposureComp');
   const subject = base.brief.subject;
+  const v = (sing: string, plur: string) => verbFor(base.brief, sing, plur);
   switch (criterion) {
     case 'motion':
       if (base.brief.motion.kind === 'blur') {
         if (main.key === 'tripod') return 'Sobre trípode puedes usar tiempos largos: así se alarga la estela sin que la cámara tiemble.';
         if (viaCamera && auto.shutter) return `En modo ${mode} la cámara decide la velocidad: con menos luz entrando, elegirá un tiempo más largo.`;
-        return `Un tiempo más largo deja que ${subject} recorra más distancia mientras el obturador está abierto: el movimiento se convierte en estela.`;
+        return `Un tiempo más largo deja que ${subject} ${v('recorra', 'recorran')} más distancia mientras el obturador está abierto: el movimiento se convierte en estela.`;
       }
-      if (main.key === 'focalMm') return `Con menos focal ${subject} ocupa menos píxeles y su recorrido en la imagen se acorta.`;
+      if (main.key === 'focalMm') return `Con menos focal ${subject} ${v('ocupa', 'ocupan')} menos píxeles y el recorrido en la imagen se acorta.`;
       if (viaCamera && auto.shutter) return `En modo ${mode} la cámara decide la velocidad: con más luz o más ISO, elegirá un tiempo más corto.`;
-      return `Un tiempo más corto reduce lo que ${subject} alcanza a desplazarse mientras el obturador está abierto.`;
+      return `Un tiempo más corto reduce lo que ${subject} ${v('alcanza', 'alcanzan')} a desplazarse mientras el obturador está abierto.`;
     case 'shake':
       if (main.key === 'tripod') return 'Sobre trípode la cámara no tiembla: puedes usar cualquier tiempo.';
       if (main.key === 'stabilizationStops') return 'La estabilización compensa varios pasos de temblor de las manos (no el movimiento del sujeto).';
       if (main.key === 'focalMm') return 'Con menos focal, el temblor se amplía menos y el límite a pulso se vuelve más lento.';
+      if (viaCamera && auto.shutter) return `En modo ${mode} la cámara decide la velocidad: con más luz o más ISO elegirá un tiempo por debajo del límite a pulso.`;
       return 'A pulso, el tiempo debe ser como máximo 1/(focal × recorte) para que el temblor de las manos no se note.';
     case 'stars':
       if (main.key === 'focalMm') return 'Con menos focal, las estrellas recorren menos píxeles por segundo: el tiempo máximo de la regla de los 500 sube.';
@@ -351,9 +382,21 @@ function reasonFor(criterion: CriterionId, main: Change, a: CameraSettings, b: C
     case 'exposure':
       if (main.key === 'exposureComp') return `En modo ${mode} la cámara sigue al exposímetro; la compensación le indica cuánto más clara u oscura quieres la foto.`;
       if (main.key === 'metering') return 'La nueva medición deja de dejarse engañar por las zonas muy claras u oscuras que rodean al sujeto.';
-      if (main.key === 'iso') return 'El ISO cierra la cuenta sin tocar el movimiento ni la profundidad de campo.';
-      if (main.key === 'shutter') return 'Cambiar el tiempo corrige la luz sin tocar la profundidad de campo; aquí el movimiento lo tolera.';
-      if (main.key === 'aperture') return 'Cambiar el diafragma corrige la luz; aquí la profundidad de campo lo tolera.';
+      if (main.key === 'iso') {
+        return b.iso > a.iso
+          ? 'Subir el ISO aclara sin tocar el movimiento ni la profundidad de campo; el precio es algo más de ruido.'
+          : 'Bajar el ISO oscurece la toma y, de paso, reduce el ruido.';
+      }
+      if (main.key === 'shutter') {
+        return b.shutter < a.shutter
+          ? 'Acortar el tiempo quita luz sin tocar la profundidad de campo y, además, congela mejor el movimiento.'
+          : 'Alargar el tiempo suma luz sin tocar la profundidad de campo; aquí el movimiento y el pulso lo toleran.';
+      }
+      if (main.key === 'aperture') {
+        return b.aperture > a.aperture
+          ? 'Cerrar el diafragma quita luz y, de paso, amplía la zona nítida.'
+          : 'Abrir el diafragma suma luz sin alargar el tiempo; la zona nítida se estrecha, pero aquí alcanza.';
+      }
       return 'Este cambio lleva la exposición del sujeto a ±0.';
     case 'focus':
       if (main.key === 'focusM') return 'Mover el punto de enfoque desplaza la zona nítida hasta incluir lo que importa.';
@@ -413,13 +456,15 @@ function buildAdvice(criterion: CriterionId, base: Evaluated, best: Evaluated): 
   const a = base.settings;
   const b = best.settings;
   const changes = describeChanges(a, b);
-  const sorted = [...changes].sort((x, y) => weightOf(y, a, b) - weightOf(x, a, b));
+  const sorted = rankChanges(criterion, changes, a, b);
   const main = sorted[0]!;
   const second = sorted[1];
   const headline = second ? `${verb(main, a, b)} y ${lowerFirst(verb(second, a, b))}` : verb(main, a, b);
   let reason = reasonFor(criterion, main, a, b, base.ctx);
   const closer = changes.find((c) => c !== main && (c.key === 'iso' || c.key === 'aperture' || c.key === 'shutter'));
   if (closer && criterion !== 'exposure') reason += ` ${closer.label === 'ISO' ? 'El ISO' : closer.label === 'Apertura' ? 'La apertura' : 'La velocidad'} compensa la luz para que la exposición siga correcta.`;
+  const support = changes.find((c) => c !== main && (c.key === 'tripod' || c.key === 'stabilizationStops'));
+  if (support) reason += support.key === 'tripod' ? ' El trípode evita la trepidación con ese tiempo.' : ' La estabilización evita la trepidación con ese tiempo.';
   const { tradeoffs, bonus } = sideEffects(base, best, criterion);
   return {
     criterion,

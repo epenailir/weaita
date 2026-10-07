@@ -57,14 +57,32 @@ interface LayerState {
   procKey: string;
   /** Resultado final de la capa (nítido, desenfocado y/o barrido). */
   out: HTMLCanvasElement;
-  marginX: number;
-  marginY: number;
+  /** Posición (px de la vista) del origen del lienzo de la capa: incluye márgenes o recorte. */
+  ox: number;
+  oy: number;
   inFocus: boolean;
   bands: Band[];
   bandCache: Map<number, Surface>;
   bandCacheKey: string;
   emitters: Emitter[] | null;
   emittersKey: string;
+}
+
+interface PxRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Recuadro en píxeles de la vista para unos límites de mundo, con relleno y recortado a la vista + márgenes. */
+function boundsToRect(b: { x0: number; y0: number; x1: number; y1: number }, W: number, H: number, ppu: number, padX: number, padY: number, mx: number, my: number): PxRect {
+  const x0 = Math.max(-mx, Math.floor(W / 2 + b.x0 * ppu - padX));
+  const x1 = Math.min(W + mx, Math.ceil(W / 2 + b.x1 * ppu + padX));
+  const y0 = Math.max(-my, Math.floor(H / 2 + b.y0 * ppu - padY));
+  const y1 = Math.min(H + my, Math.ceil(H / 2 + b.y1 * ppu + padY));
+  if (x1 - x0 < 1 || y1 - y0 < 1) return { x: 0, y: 0, w: 1, h: 1 };
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 
 function bucketOf(d: number): number {
@@ -169,9 +187,16 @@ export class SimRenderer implements SimRendererApi {
       const q = 48;
       const mx = L.motion ? Math.min(Math.ceil((Math.abs(ux) * motionPx) / 2 / q) * q, Math.ceil(W / 2)) : 0;
       const my = L.motion ? Math.min(Math.ceil((Math.abs(uy) * motionPx) / 2 / q) * q, Math.ceil(H / 2)) : 0;
-      const sharpKey = `${viewKey}|${L.animated ? timeS.toFixed(4) : '-'}|${mx}x${my}`;
+      let rect: PxRect = { x: -mx, y: -my, w: W + 2 * mx, h: H + 2 * my };
+      if (L.animated && L.bounds && !L.plane) {
+        // Capas animadas pequeñas (sujetos): se pintan y procesan solo en su recuadro.
+        const wb = L.bounds(this.frame(W, H, ppu, timeS, settings.shutter));
+        const sig = (discFraction(L.distanceM) * W) / 2.4;
+        rect = wb ? boundsToRect(wb, W, H, ppu, Math.ceil(sig * 3 + Math.abs(ux) * motionPx * 0.5 + 6), Math.ceil(sig * 3 + Math.abs(uy) * motionPx * 0.5 + 6), mx, my) : { x: 0, y: 0, w: 1, h: 1 };
+      }
+      const sharpKey = `${viewKey}|${L.animated ? timeS.toFixed(4) : '-'}|${rect.x},${rect.y},${rect.w},${rect.h}`;
       if (ls.sharpKey !== sharpKey) {
-        this.paintLayer(ls, mx, my, ppu, timeS, settings.shutter);
+        this.paintLayer(ls, rect, ppu, timeS, settings.shutter);
         ls.sharpKey = sharpKey;
         if (!L.animated) repaintedStatic = true;
       }
@@ -342,8 +367,8 @@ export class SimRenderer implements SimRendererApi {
         procB: null,
         procKey: '',
         out: sharp.canvas,
-        marginX: 0,
-        marginY: 0,
+        ox: 0,
+        oy: 0,
         inFocus: false,
         bands: [],
         bandCache: new Map(),
@@ -381,15 +406,25 @@ export class SimRenderer implements SimRendererApi {
     };
   }
 
-  private paintLayer(ls: LayerState, mx: number, my: number, ppu: number, timeS: number, exposureS: number): void {
-    const cw = this.W + mx * 2;
-    const ch = this.H + my * 2;
-    sizeSurface(ls.sharp, cw, ch);
-    ls.marginX = mx;
-    ls.marginY = my;
+  private paintLayer(ls: LayerState, rect: PxRect, ppu: number, timeS: number, exposureS: number): void {
+    sizeSurface(ls.sharp, rect.w, rect.h);
+    ls.ox = rect.x;
+    ls.oy = rect.y;
     const ctx = ls.sharp.ctx;
-    ctx.setTransform(ppu, 0, 0, ppu, cw / 2, ch / 2);
-    ls.layer.paint?.(ctx, this.frame(cw, ch, ppu, timeS, exposureS));
+    // El centro del mundo (0, 0) cae en el centro de la vista.
+    const tx = this.W / 2 - rect.x;
+    const ty = this.H / 2 - rect.y;
+    ctx.setTransform(ppu, 0, 0, ppu, tx, ty);
+    ls.layer.paint?.(ctx, {
+      x0: -tx / ppu,
+      x1: (rect.w - tx) / ppu,
+      y0: -ty / ppu,
+      y1: (rect.h - ty) / ppu,
+      ppu,
+      px: 1 / ppu,
+      timeS,
+      exposureS,
+    });
     resetContext(ctx);
     ls.out = ls.sharp.canvas;
     ls.procKey = '';
@@ -423,12 +458,13 @@ export class SimRenderer implements SimRendererApi {
     const scene = SCENES[this.sceneId];
     const ch = ls.sharp.canvas.height;
     const farM = plane.farM ?? scene.lighting.backgroundDistanceM;
-    const horizonPx = ch / 2 + plane.horizonY * ppu;
+    const cy = this.H / 2 - ls.oy;
+    const horizonPx = cy + plane.horizonY * ppu;
     const W = this.W;
     const rows: Band[] = [];
     const step = 6;
     for (let y = 0; y < ch; y += step) {
-      const wy = (y + step / 2 - ch / 2) / ppu;
+      const wy = (y + step / 2 - cy) / ppu;
       const d = y + step / 2 <= horizonPx ? farM : Math.min(farM, groundDistance(plane.horizonY, scene.refFocalMm, plane.cameraHeightM, wy));
       const frac = discFraction(d);
       const diam = frac * W;
@@ -448,64 +484,75 @@ export class SimRenderer implements SimRendererApi {
   private processPlane(ls: LayerState): void {
     const bands = ls.bands;
     const src = ls.sharp.canvas;
+    const cw = src.width;
+    const ch = src.height;
     if (ls.bandCacheKey !== ls.sharpKey) {
       for (const s of ls.bandCache.values()) releaseSurface(s);
       ls.bandCache.clear();
       ls.bandCacheKey = ls.sharpKey;
     }
-    const blurred = (b: Band): HTMLCanvasElement => {
-      if (b.diam <= 0.7) return src;
-      let s = ls.bandCache.get(b.bucket);
-      if (!s) {
-        s = createSurface();
-        this.blur.gaussian(src, b.diam / 2.4, s);
-        ls.bandCache.set(b.bucket, s);
+    const centers = bands.map((b) => (b.y0 + b.y1) / 2);
+    // Región de filas que necesita cada banda: entre los centros vecinos (rampa) más 3σ de contexto.
+    const regionOf = (i: number) => {
+      const b = bands[i]!;
+      const top = i > 0 ? Math.floor(centers[i - 1]!) : 0;
+      const bottom = i < bands.length - 1 ? Math.ceil(centers[i + 1]!) : ch;
+      const pad = b.diam > 0.7 ? Math.ceil((b.diam / 2.4) * 3) + 2 : 0;
+      const y0 = Math.max(0, top - pad);
+      const y1 = Math.min(ch, bottom + pad);
+      return { top, bottom, y0, y1, key: b.bucket * 1e8 + y0 * 1e4 + y1 };
+    };
+    const used = new Set<number>();
+    const blurredRegion = (i: number): { canvas: HTMLCanvasElement; y: number } => {
+      const b = bands[i]!;
+      const reg = regionOf(i);
+      if (b.diam <= 0.7) return { canvas: src, y: 0 };
+      used.add(reg.key);
+      let surf = ls.bandCache.get(reg.key);
+      if (!surf) {
+        surf = createSurface();
+        this.blur.gaussian(src, b.diam / 2.4, surf, { x: 0, y: reg.y0, w: cw, h: Math.max(1, reg.y1 - reg.y0) });
+        ls.bandCache.set(reg.key, surf);
       }
-      return s.canvas;
+      return { canvas: surf.canvas, y: reg.y0 };
     };
     if (bands.length <= 1) {
-      ls.out = bands[0] ? blurred(bands[0]) : src;
-      return;
-    }
-    ls.procA ??= createSurface();
-    const acc = ls.procA;
-    sizeSurface(acc, src.width, src.height);
-    const ch = src.height;
-    const centers = bands.map((b) => (b.y0 + b.y1) / 2);
-    const tmp = this.scratch;
-    for (let i = 0; i < bands.length; i++) {
-      const b = bands[i]!;
-      // Rampa (partición de la unidad) entre los centros de las bandas vecinas.
-      const prev = i > 0 ? centers[i - 1]! : -1;
-      const next = i < bands.length - 1 ? centers[i + 1]! : -1;
-      const c = centers[i]!;
-      const top = prev < 0 ? 0 : prev;
-      const bottom = next < 0 ? ch : next;
-      sizeSurface(tmp, src.width, ch);
-      tmp.ctx.drawImage(blurred(b), 0, 0);
-      tmp.ctx.globalCompositeOperation = 'destination-in';
-      const g = tmp.ctx.createLinearGradient(0, 0, 0, ch);
-      const at = (y: number) => Math.min(1, Math.max(0, y / ch));
-      if (prev < 0) g.addColorStop(0, '#000');
-      else {
-        g.addColorStop(at(prev), 'rgba(0,0,0,0)');
+      ls.out = bands[0] ? blurredRegion(0).canvas : src;
+    } else {
+      ls.procA ??= createSurface();
+      const acc = ls.procA;
+      sizeSurface(acc, cw, ch);
+      const tmp = this.scratch;
+      for (let i = 0; i < bands.length; i++) {
+        const reg = regionOf(i);
+        const h = reg.bottom - reg.top;
+        if (h <= 0) continue;
+        const bl = blurredRegion(i);
+        // Banda recortada a [top, bottom] con rampa (partición de la unidad) entre centros.
+        sizeSurface(tmp, cw, h);
+        tmp.ctx.drawImage(bl.canvas, 0, reg.top - bl.y, cw, h, 0, 0, cw, h);
+        tmp.ctx.globalCompositeOperation = 'destination-in';
+        const g = tmp.ctx.createLinearGradient(0, 0, 0, h);
+        const at = (y: number) => Math.min(1, Math.max(0, (y - reg.top) / h));
+        g.addColorStop(0, i > 0 ? 'rgba(0,0,0,0)' : '#000');
+        g.addColorStop(at(centers[i]!), '#000');
+        g.addColorStop(1, i < bands.length - 1 ? 'rgba(0,0,0,0)' : '#000');
+        tmp.ctx.fillStyle = g;
+        tmp.ctx.fillRect(0, 0, cw, h);
+        resetContext(tmp.ctx);
+        acc.ctx.globalCompositeOperation = 'lighter';
+        acc.ctx.drawImage(tmp.canvas, 0, reg.top);
       }
-      g.addColorStop(at(c), '#000');
-      if (next < 0) g.addColorStop(1, '#000');
-      else g.addColorStop(at(next), 'rgba(0,0,0,0)');
-      tmp.ctx.fillStyle = g;
-      tmp.ctx.fillRect(0, top, src.width, bottom - top);
-      // Fuera de [top, bottom] la banda no aporta.
-      tmp.ctx.globalCompositeOperation = 'destination-out';
-      tmp.ctx.fillStyle = '#000';
-      if (top > 0) tmp.ctx.fillRect(0, 0, src.width, top);
-      if (bottom < ch) tmp.ctx.fillRect(0, bottom, src.width, ch - bottom);
-      resetContext(tmp.ctx);
-      acc.ctx.globalCompositeOperation = 'lighter';
-      acc.ctx.drawImage(tmp.canvas, 0, 0);
+      resetContext(acc.ctx);
+      ls.out = acc.canvas;
     }
-    resetContext(acc.ctx);
-    ls.out = acc.canvas;
+    // Libera las versiones desenfocadas que ya no usa ninguna banda (acota la memoria).
+    for (const [key, surf] of ls.bandCache) {
+      if (!used.has(key)) {
+        releaseSurface(surf);
+        ls.bandCache.delete(key);
+      }
+    }
   }
 
   /* ------------------------------------------------------------------ Composición */
@@ -515,7 +562,7 @@ export class SimRenderer implements SimRendererApi {
     sizeSurface(c, W, H);
     c.ctx.fillStyle = '#000';
     c.ctx.fillRect(0, 0, W, H);
-    for (const ls of this.layers) c.ctx.drawImage(ls.out, -ls.marginX, -ls.marginY);
+    for (const ls of this.layers) c.ctx.drawImage(ls.out, ls.ox, ls.oy);
     let final: Surface = c;
     if (shakePx > 0) {
       this.blur.directional(c.canvas, shakePx, sx, sy, this.comp2);
@@ -661,7 +708,7 @@ export class SimRenderer implements SimRendererApi {
           }
         }
       }
-      this.occ.ctx.drawImage(ls.out, -ls.marginX, -ls.marginY);
+      this.occ.ctx.drawImage(ls.out, ls.ox, ls.oy);
       occDrawn = true;
     }
     em.setOcclusion(null);
@@ -691,7 +738,7 @@ export class SimRenderer implements SimRendererApi {
       } else tmp.ctx.fillStyle = ls.inFocus ? '#fff' : '#000';
       tmp.ctx.fillRect(0, 0, src.width, src.height);
       resetContext(tmp.ctx);
-      m.ctx.drawImage(tmp.canvas, -ls.marginX, -ls.marginY);
+      m.ctx.drawImage(tmp.canvas, ls.ox, ls.oy);
     }
     return m.ctx.getImageData(0, 0, W, H).data;
   }

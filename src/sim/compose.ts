@@ -52,6 +52,8 @@ const TONE_SCALE = TONE_N / TONE_MAX;
 const KNEE = 0.8;
 /** Margen del campo cromático para desplazarlo en cada cuadro. */
 const CHROMA_PAD = 64;
+/** ISO máximo de la escala de la cámara. */
+const MAX_ISO = 25600;
 
 export interface ToneParams {
   /** 2^desvío de exposición (1 = exposición correcta del sujeto). */
@@ -175,7 +177,9 @@ export class ToneMapper {
    * fuentes de luz en lineal (puede ser null).
    */
   develop(base: Uint8ClampedArray, emis: Float32Array | null, out: Uint8ClampedArray, w: number, h: number, p: ToneParams, keepLuma: boolean): void {
-    this.buildTone(dynamicRangeStops(p.iso));
+    // El ruido y el rango dinámico se evalúan dentro de la escala real de la cámara.
+    const iso = Math.min(Math.max(p.iso, 100), MAX_ISO);
+    this.buildTone(dynamicRangeStops(iso));
     this.buildVignette(w, h, p.aperture);
     const lut = SRGB_TO_LINEAR;
     const tone = this.toneLut;
@@ -186,12 +190,12 @@ export class ToneMapper {
     const kr = p.gain * p.cast[0] * TONE_SCALE;
     const kg = p.gain * p.cast[1] * TONE_SCALE;
     const kb = p.gain * p.cast[2] * TONE_SCALE;
-    const sl = lumaNoiseSigma(p.iso) * 255;
-    const sc = chromaNoiseSigma(p.iso) * 255;
+    const sl = lumaNoiseSigma(iso) * 255;
+    const sc = chromaNoiseSigma(iso) * 255;
     const noisy = sl > 0.6;
     const chroma = sc > 0.5;
     // ISO alto: colores apagados ("sucios") además del grano.
-    const sat = 1 - 0.3 * Math.pow(noiseScore(p.iso) / 100, 1.3);
+    const sat = 1 - 0.3 * Math.pow(noiseScore(iso) / 100, 1.3);
     const n = w * h;
     if (this.clipped.length !== n) this.clipped = new Uint8Array(n);
     if (keepLuma && this.luma.length !== n) this.luma = new Uint8Array(n);

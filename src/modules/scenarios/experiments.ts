@@ -16,7 +16,7 @@ import {
 import type { CameraSettings } from '../../engine';
 import type { ScenarioId } from '../../content/types';
 import { FOCUS_INFINITY_M, METERING_INFO } from '../../components/viewfinder';
-import { fmtDepth, fmtEV, fmtLength, fmtMicrons, fmtPct, fmtPx, fmtTime, fmtZone, num } from './format';
+import { fmtDepth, fmtEV, fmtLength, fmtMicrons, fmtPct, fmtPx, fmtTime, fmtZone, num, timesText } from './format';
 import type { ShotContext } from './model';
 
 export interface ExperimentResult {
@@ -155,7 +155,7 @@ export const EXPERIMENTS: Record<ScenarioId, Experiment[]> = {
         const mountains = !Number.isFinite(now.m.dofFarM);
         return {
           observed:
-            `La zona nítida se reduce a ${fmtZone(now.m.dofNearM, now.m.dofFarM)}. Primer plano a ${formatDistance(fg)}: ${inZone(now, fg) ? 'nítido' : 'blando'}; ` +
+            `La zona nítida queda entre ${formatDistance(now.m.dofNearM)} y ${formatDistance(now.m.dofFarM)}. Primer plano a ${formatDistance(fg)}: ${inZone(now, fg) ? 'nítido' : 'blando'}; ` +
             `montañas: ${mountains ? 'nítidas' : 'blandas'}.`,
           why:
             `La hiperfocal depende del número f: H = f²/(N·c). A f/2.8 es ${formatDistance(now.m.hyperfocalM)}, ${num(ratio(now.m.hyperfocalM, rec.m.hyperfocalM))}× más lejos que a ${formatAperture(rec.s.aperture)}, ` +
@@ -172,7 +172,7 @@ export const EXPERIMENTS: Record<ScenarioId, Experiment[]> = {
       explain: (now, rec) => ({
         observed:
           `El disco de Airy crece de ${fmtMicrons(airyDiskMm(rec.s.aperture))} a ${fmtMicrons(airyDiskMm(now.s.aperture))}, ` +
-          `${num(airyDiskMm(now.s.aperture) / now.sensor.cocMm)}× el círculo de confusión: toda la imagen se ablanda. En modo A la velocidad baja a ${fmtTime(now.s.shutter)}.`,
+          `${timesText(airyDiskMm(now.s.aperture) / now.sensor.cocMm)} el círculo de confusión: toda la imagen se ablanda. En modo A la velocidad baja a ${fmtTime(now.s.shutter)}.`,
         why: 'La luz se difracta en el borde del diafragma y desenfoca todo por igual. En full frame, más allá de f/11–f/16 pierdes más nitidez general de la que ganas en profundidad de campo.',
       }),
     },
@@ -258,7 +258,7 @@ export const EXPERIMENTS: Record<ScenarioId, Experiment[]> = {
       question: 'Enfocado a 3 m, ¿saldrá nítido un peatón a 5 m?',
       patch: () => ({ aperture: 1.8, iso: 100 }),
       explain: (now, rec) => ({
-        observed: `La zona nítida se reduce a ${fmtZone(now.m.dofNearM, now.m.dofFarM)} (${fmtDepth(now.m.dofNearM, now.m.dofFarM)}): un peatón a 5 m sale ${inZone(now, 5) ? 'nítido' : 'desenfocado'}.`,
+        observed: `La zona nítida queda entre ${formatDistance(now.m.dofNearM)} y ${formatDistance(now.m.dofFarM)} (${fmtDepth(now.m.dofNearM, now.m.dofFarM)}): un peatón a 5 m sale ${inZone(now, 5) ? 'nítido' : 'desenfocado'}.`,
         why: `En la calle no hay tiempo de reenfocar. A f/1.8 solo te quedan ${fmtDepth(now.m.dofNearM, now.m.dofFarM)} de margen; a ${formatAperture(rec.s.aperture)} cubrías de ${fmtZone(rec.m.dofNearM, rec.m.dofFarM)}.`,
       }),
     },

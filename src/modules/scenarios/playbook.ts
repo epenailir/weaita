@@ -41,6 +41,8 @@ export interface Playbook {
   focusM: (s: CameraSettings) => number;
   /** Cómo se elige ese enfoque (texto de la tarjeta). */
   focusNote: string;
+  /** Marca junto a la distancia en la tarjeta ("H" = hiperfocal). */
+  focusBadge?: string;
   /** Rótulo corto del modo de disparo, como en el OSD. */
   driveShort: string;
   /** Ajustes rápidos relevantes, por orden de importancia. */
@@ -53,7 +55,11 @@ export interface Playbook {
   checks: Check[];
 }
 
-const hyperfocalOf = (s: CameraSettings) => Math.round(hyperfocalM(s.focalMm, s.aperture, SENSORS[s.sensor].cocMm) * 100) / 100;
+/**
+ * Hiperfocal de la receta. Se enfoca un micrómetro más allá de H para que el límite lejano
+ * sea infinito aunque el redondeo en coma flotante deje la distancia apenas por debajo.
+ */
+const hyperfocalOf = (s: CameraSettings) => hyperfocalM(s.focalMm, s.aperture, SENSORS[s.sensor].cocMm) + 1e-6;
 
 export const PLAYBOOKS: Record<ScenarioId, Playbook> = {
   'golden-hour-portrait': {
@@ -110,6 +116,7 @@ export const PLAYBOOKS: Record<ScenarioId, Playbook> = {
     tripod: true,
     focusM: hyperfocalOf,
     focusNote: 'MF a la hiperfocal',
+    focusBadge: 'H',
     driveShort: 'Temp. 2 s',
     quick: ['focus', 'tripod', 'focal', 'metering', 'wb', 'format'],
     live: false,
@@ -158,6 +165,7 @@ export const PLAYBOOKS: Record<ScenarioId, Playbook> = {
     tripod: false,
     focusM: () => SCENES.street.lighting.subjectDistanceM,
     focusNote: 'MF prefijado (zona)',
+    focusBadge: 'ZONA',
     driveShort: 'Silencio',
     quick: ['focus', 'af', 'focal', 'metering', 'format'],
     live: true,

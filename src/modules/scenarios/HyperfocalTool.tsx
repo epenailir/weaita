@@ -23,13 +23,14 @@ export function HyperfocalTool({ cam, lighting }: ToolProps) {
   const { settings, effective, metrics } = cam;
   const sensor = SENSORS[settings.sensor];
   const H = metrics.hyperfocalM;
-  const roundedH = Math.round(H * 100) / 100;
-  const atH = depthOfField(settings.focalMm, effective.aperture, roundedH, sensor.cocMm);
+  // Un micrómetro más allá de H: enfocar apenas antes dejaría el infinito fuera de la zona.
+  const focusH = H + 1e-6;
+  const atH = depthOfField(settings.focalMm, effective.aperture, focusH, sensor.cocMm);
   const inside = (d: number) => metrics.dofNearM <= d && d <= metrics.dofFarM;
 
   const objects = [
-    lighting.foregroundDistanceM !== null ? { id: 'near', tag: '1', name: 'Lo más cercano', d: lighting.foregroundDistanceM } : null,
-    { id: 'subject', tag: '2', name: 'Rocas del primer plano', d: lighting.subjectDistanceM },
+    lighting.foregroundDistanceM !== null ? { id: 'near', tag: '1', name: 'Primer plano', d: lighting.foregroundDistanceM } : null,
+    { id: 'subject', tag: '2', name: 'Rocas', d: lighting.subjectDistanceM },
     { id: 'far', tag: '3', name: 'Montañas', d: lighting.backgroundDistanceM },
   ].filter((o): o is { id: string; tag: string; name: string; d: number } => o !== null);
 
@@ -38,7 +39,7 @@ export function HyperfocalTool({ cam, lighting }: ToolProps) {
   const airyRatio = airy / sensor.cocMm;
   const currentStop = nearestStop(APERTURES, effective.aperture).label;
   const stopValue = (label: string) => APERTURES.find((a) => a.label === label)?.value ?? effective.aperture;
-  const focusedAtH = !isInfinity(settings.focusM) && Math.abs(Math.log(settings.focusM / roundedH)) < 0.04;
+  const focusedAtH = !isInfinity(settings.focusM) && Math.abs(Math.log(settings.focusM / focusH)) < 0.04;
 
   const focusAt = (m: number) => cam.set({ focusM: m, af: 'MF' });
 
@@ -76,10 +77,10 @@ export function HyperfocalTool({ cam, lighting }: ToolProps) {
             variant={focusedAtH ? 'secondary' : 'primary'}
             size="sm"
             icon={<Crosshair size={14} aria-hidden="true" />}
-            onClick={() => focusAt(roundedH)}
+            onClick={() => focusAt(focusH)}
             aria-pressed={focusedAtH}
           >
-            Enfocar a la hiperfocal ({formatDistance(roundedH)})
+            Enfocar a la hiperfocal ({formatDistance(focusH)})
           </Button>
           <div className="grid grid-cols-2 gap-2">
             <Button size="sm" variant="ghost" className="border border-line" icon={<InfinityIcon size={14} aria-hidden="true" />} onClick={() => focusAt(FOCUS_INFINITY_M)}>
@@ -91,7 +92,7 @@ export function HyperfocalTool({ cam, lighting }: ToolProps) {
           </div>
         </div>
         <ToolNote>
-          Enfocando a la hiperfocal ({formatDistance(roundedH)}), todo es nítido desde {formatDistance(atH.nearM)} hasta el infinito: la mitad de la
+          Enfocando a la hiperfocal ({formatDistance(focusH)}), todo es nítido desde {formatDistance(atH.nearM)} hasta el infinito: la mitad de la
           distancia. Enfocar al infinito desperdicia esa mitad.
         </ToolNote>
       </ToolBlock>
