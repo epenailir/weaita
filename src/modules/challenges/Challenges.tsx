@@ -29,9 +29,9 @@ function setHash(sub: string | null) {
   if (window.location.hash !== next) window.history.replaceState(null, '', next);
 }
 
-function SummaryCard({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+function SummaryCard({ icon, label, children, className }: { icon: ReactNode; label: string; children: ReactNode; className?: string }) {
   return (
-    <div className="surface flex min-w-0 flex-col p-4">
+    <div className={cn('surface flex min-w-0 flex-col p-4', className)}>
       <div className="eyebrow mb-2 flex items-center gap-1.5">
         {icon}
         {label}
@@ -129,7 +129,7 @@ export function Challenges({ onNavigate }: PageProps) {
       />
 
       {/* Resumen */}
-      <div className="grid gap-3 md:grid-cols-[1fr_1fr_1.4fr]">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-[1fr_1fr_1.4fr]">
         <SummaryCard icon={<Trophy size={12} className="text-amber" aria-hidden="true" />} label="Desafíos superados">
           <div className="osd text-2xl font-medium text-fg">
             {solvedCount}
@@ -144,7 +144,11 @@ export function Challenges({ onNavigate }: PageProps) {
           </div>
           <Meter value={quizCount} max={QUIZ.length} label="Preguntas del quiz acertadas" />
         </SummaryCard>
-        <SummaryCard icon={<Target size={12} className="text-amber" aria-hidden="true" />} label="Siguiente recomendado">
+        <SummaryCard
+          icon={<Target size={12} className="text-amber" aria-hidden="true" />}
+          label="Siguiente recomendado"
+          className="col-span-2 md:col-span-1"
+        >
           {recommended ? (
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">

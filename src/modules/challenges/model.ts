@@ -220,7 +220,7 @@ export function diagnose(result: TargetResult, ctx: DiagnosisContext): Diagnosis
         const available = 2 * log2(m.aperture / (APERTURES[0]?.value ?? 1.4));
         // Si el objetivo ya está abierto al máximo, la apertura no es una opción.
         if (needed <= available + 0.01) moves.push(`abrir el diafragma unos ${stopsText(needed)}`);
-        else if (available > 0.3) moves.push('abrir el diafragma, aunque solo con eso no alcanza');
+        else if (available > 0.3) moves.push('abrir el diafragma (aunque solo con eso no alcanza)');
       }
       if (free('focal')) moves.push('usar más focal (el disco crece con el cuadrado de la focal)');
       return {
@@ -341,8 +341,8 @@ function seeded(seed: number): () => number {
 
 /**
  * Práctica intercalada: reparte las preguntas por tema y las toma por turnos, de modo que
- * nunca salgan dos seguidas del mismo tema si se puede evitar. Dentro de cada tema se respeta
- * la dificultad (de Cero a Avanzado); la semilla cambia el orden de los temas.
+ * nunca salgan dos seguidas del mismo tema si se puede evitar. La dificultad avanza de Cero a
+ * Avanzado; la semilla cambia el orden de los temas dentro de cada nivel.
  */
 export function interleave(questions: QuizQuestion[], seed: number): QuizQuestion[] {
   const rand = seeded(seed);
@@ -366,8 +366,9 @@ export function interleave(questions: QuizQuestion[], seed: number): QuizQuestio
   const out: QuizQuestion[] = [];
   let lastTopic = '';
   while (out.length < questions.length) {
-    // Prioriza los temas con más preguntas pendientes para no acabar con un bloque repetido
-    const ordered = queues.filter((q) => q.length > 0).sort((a, b) => b.length - a.length);
+    // Primero lo más básico pendiente (dificultad progresiva); a igual nivel, el tema con más preguntas
+    const head = (q: QuizQuestion[]) => (q[0] ? LEVEL_INFO[q[0].level].step : 9);
+    const ordered = queues.filter((q) => q.length > 0).sort((a, b) => head(a) - head(b) || b.length - a.length);
     const pick = ordered.find((q) => q[0]?.topic !== lastTopic) ?? ordered[0];
     const next = pick?.shift();
     if (!next) break;

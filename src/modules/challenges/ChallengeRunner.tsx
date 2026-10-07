@@ -331,7 +331,7 @@ export function ChallengeRunner({ challenge, index, total, solved, onBack, onPre
                 {attempts.map((a) => (
                   <li key={a.n} className="flex items-center gap-2.5 rounded-md border border-line bg-panel-2 px-2.5 py-2 text-[12px]">
                     <span className="osd w-6 shrink-0 text-faint">#{a.n}</span>
-                    <span className="osd min-w-0 flex-1 truncate text-muted">
+                    <span className="osd min-w-0 flex-1 leading-snug text-muted">
                       {formatAperture(a.aperture)} · {shutterText(a.shutter)} · ISO {formatIso(a.iso)} · {Math.round(a.focal)} mm
                     </span>
                     <span className={cn('osd inline-flex shrink-0 items-center gap-1', a.success ? 'text-data' : 'text-danger')}>

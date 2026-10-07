@@ -74,7 +74,9 @@ export function ShotFeedback({
           <div className="min-w-0">
             <div className="eyebrow !text-data">Toma {outcome.attempt} · superado</div>
             <h3 id="shot-success-title" className="mt-1 text-[15px] font-semibold text-fg">
-              ¡Lo lograste! Cumpliste los {outcome.results.length} criterios.
+              {outcome.results.length === 1
+                ? '¡Lo lograste! Cumpliste el criterio.'
+                : `¡Lo lograste! Cumpliste los ${outcome.results.length} criterios.`}
             </h3>
           </div>
         </div>
