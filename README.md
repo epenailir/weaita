@@ -92,3 +92,10 @@ npm run typecheck    # TypeScript estricto
 npm run build        # build de producción en dist/
 npm run build:single # un único HTML autocontenido en dist-single/
 ```
+
+## Despliegue
+
+- **GitHub Pages**: el workflow `.github/workflows/deploy-pages.yml` prueba, compila y publica `dist/` en cada push. Actívalo una vez en *Settings → Pages → Build and deployment → Source: GitHub Actions*.
+- **Netlify**: `netlify.toml` ya define el comando (`npm run build`) y la carpeta (`dist`). En Netlify: *Add new site → Import an existing project → GitHub → epenailir/weaita* y despliega; cada push vuelve a publicar.
+
+La app usa rutas por hash (`#exposicion`) y rutas relativas (`base: './'`), así que funciona en cualquier subcarpeta sin reglas de redirección.

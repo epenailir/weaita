@@ -1,0 +1,13 @@
+# Despliegue en Netlify: build de Vite y publicación de dist/.
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Archivos con hash en el nombre: caché larga.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
