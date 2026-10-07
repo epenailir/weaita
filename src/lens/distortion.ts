@@ -33,8 +33,9 @@ export function frameHalfExtents(aspect: number): { hx: number; hy: number } {
 }
 
 /**
- * Límite de exageración para el barril: con k1 < −4/27·… el modelo directo «se pliega»
- * antes de llegar a la esquina. −0,14 mantiene la esquina cubierta.
+ * Límite de exageración para el barril. El modelo directo r' = r(1 + k1·r²) alcanza su
+ * máximo (2/3)/√(−3k1); por debajo de k1 = −4/27 ≈ −0,148 ese máximo queda dentro del
+ * encuadre y las esquinas se quedarían sin imagen. −0,14 mantiene la esquina cubierta.
  */
 export const MIN_DEMO_K1 = -0.14;
 
@@ -65,7 +66,7 @@ export function buildFacade(): FacadeGeometry {
   for (let x = -EXT_X; x <= EXT_X + 1e-9; x += bay) xs.push(x);
   for (const y of ys) slabs.push([[-EXT_X, y], [EXT_X, y]]);
   for (const x of xs) columns.push([[x, -EXT_Y], [x, EXT_Y]]);
-  const inset = 0.018;
+  const inset = 0.024;
   for (let j = 0; j < ys.length - 1; j++) {
     for (let i = 0; i < xs.length - 1; i++) {
       const x0 = xs[i]! + inset;
@@ -73,7 +74,7 @@ export function buildFacade(): FacadeGeometry {
       const y0 = ys[j]! + inset * 1.6;
       const y1 = ys[j + 1]! - inset;
       const h = hashCell(i, j);
-      cells.push({ pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], lit: h < 0.22, tone: hashCell(j + 31, i + 7) });
+      cells.push({ pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], lit: h < 0.14, tone: hashCell(j + 31, i + 7) });
     }
   }
   return {

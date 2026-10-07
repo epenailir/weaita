@@ -120,16 +120,16 @@ function createTrees(rnd: () => number): TreeSpec[] {
   for (let i = 0; i < count; i++) {
     const side = i % 2 === 0 ? -1 : 1;
     const z = -70 + rnd() * 168;
-    const minX = z < 0 ? 7 : 4.8;
+    const minX = z < 0 ? 7.5 : 5.5;
     const x = side * (minX + rnd() * 16);
     const height = 5.5 + rnd() * 5;
-    const crown = height * (0.22 + rnd() * 0.09);
-    const lobes: TreeLobe[] = [{ dx: 0, dy: 0, r: crown }];
-    const n = 3 + Math.floor(rnd() * 3);
+    const crown = height * (0.2 + rnd() * 0.08);
+    const lobes: TreeLobe[] = [{ dx: 0, dy: 0, r: crown * 0.92 }];
+    const n = 5 + Math.floor(rnd() * 3);
     for (let k = 0; k < n; k++) {
-      const a = rnd() * Math.PI * 2;
-      const d = crown * (0.3 + rnd() * 0.35);
-      lobes.push({ dx: Math.cos(a) * d, dy: Math.sin(a) * d * 0.75, r: crown * (0.45 + rnd() * 0.3) });
+      const a = (k / n) * Math.PI * 2 + rnd() * 0.6;
+      const d = crown * (0.45 + rnd() * 0.25);
+      lobes.push({ dx: Math.cos(a) * d, dy: Math.sin(a) * d * 0.85, r: crown * (0.38 + rnd() * 0.2) });
     }
     out.push({ x, z, height, crown, lobes, tone: FOLIAGE[Math.floor(rnd() * FOLIAGE.length)] ?? FOLIAGE[0]! });
   }

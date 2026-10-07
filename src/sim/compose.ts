@@ -50,6 +50,8 @@ const TONE_N = 16384;
 const TONE_SCALE = TONE_N / TONE_MAX;
 /** La rodilla empieza en KNEE y llega a blanco puro en 2 − KNEE con derivada continua. */
 const KNEE = 0.8;
+/** Margen del campo cromático para desplazarlo en cada cuadro. */
+const CHROMA_PAD = 64;
 
 export interface ToneParams {
   /** 2^desvío de exposición (1 = exposición correcta del sujeto). */
@@ -80,8 +82,8 @@ export class ToneMapper {
   private vKey = '';
   private chromaU = new Float32Array(0);
   private chromaV = new Float32Array(0);
-  private rowU = new Float32Array(0);
-  private rowV = new Float32Array(0);
+  private chromaW = 0;
+  private chromaH = 0;
   /** Luminancia previa al ruido (para el focus peaking). */
   private luma = new Uint8Array(0);
   /** Píxeles quemados (para las zebras). */
@@ -127,28 +129,45 @@ export class ToneMapper {
     }
   }
 
-  /** Campo de ruido cromático de baja frecuencia (celdas de 3 px interpoladas). */
-  private buildChroma(w: number, h: number, seed: number): { gw: number } {
+  /**
+   * Campo de ruido cromático de baja frecuencia (celdas de 3 px interpoladas), precalculado a
+   * resolución completa con un margen de 64 px: cada cuadro usa un desplazamiento distinto.
+   */
+  private buildChroma(w: number, h: number): void {
+    const fw = w + CHROMA_PAD;
+    const fh = h + CHROMA_PAD;
+    if (this.chromaW === fw && this.chromaH === fh) return;
+    this.chromaW = fw;
+    this.chromaH = fh;
     const cell = 3;
-    const gw = Math.ceil(w / cell) + 2;
-    const gh = Math.ceil(h / cell) + 2;
-    if (this.chromaU.length !== gw * gh) {
-      this.chromaU = new Float32Array(gw * gh);
-      this.chromaV = new Float32Array(gw * gh);
-    }
-    if (this.rowU.length !== gw) {
-      this.rowU = new Float32Array(gw);
-      this.rowV = new Float32Array(gw);
-    }
+    const gw = Math.ceil(fw / cell) + 2;
+    const gh = Math.ceil(fh / cell) + 2;
     const g = gauss();
-    const off = hash32(seed * 7919 + 17);
     // La interpolación bilineal reduce la varianza; se compensa para mantener sigma.
     const k = 1.55;
+    const lowU = new Float32Array(gw * gh);
+    const lowV = new Float32Array(gw * gh);
     for (let i = 0; i < gw * gh; i++) {
-      this.chromaU[i] = g[(off + i * 2) & GAUSS_MASK]! * k;
-      this.chromaV[i] = g[(off + i * 2 + 1) & GAUSS_MASK]! * k;
+      lowU[i] = g[(i * 2 + 7919) & GAUSS_MASK]! * k;
+      lowV[i] = g[(i * 2 + 7920) & GAUSS_MASK]! * k;
     }
-    return { gw };
+    this.chromaU = new Float32Array(fw * fh);
+    this.chromaV = new Float32Array(fw * fh);
+    for (let y = 0; y < fh; y++) {
+      const gy = y / cell;
+      const y0 = gy | 0;
+      const fy = gy - y0;
+      for (let x = 0; x < fw; x++) {
+        const gx = x / cell;
+        const x0 = gx | 0;
+        const fx = gx - x0;
+        const a = y0 * gw + x0;
+        const b = a + gw;
+        const i = y * fw + x;
+        this.chromaU[i] = (lowU[a]! * (1 - fx) + lowU[a + 1]! * fx) * (1 - fy) + (lowU[b]! * (1 - fx) + lowU[b + 1]! * fx) * fy;
+        this.chromaV[i] = (lowV[a]! * (1 - fx) + lowV[a + 1]! * fx) * (1 - fy) + (lowV[b]! * (1 - fx) + lowV[b + 1]! * fx) * fy;
+      }
+    }
   }
 
   /**
@@ -178,53 +197,51 @@ export class ToneMapper {
     if (keepLuma && this.luma.length !== n) this.luma = new Uint8Array(n);
     const clipped = this.clipped;
     const luma = this.luma;
-    let gw = 0;
-    if (chroma) gw = this.buildChroma(w, h, p.noiseSeed).gw;
+    if (chroma) this.buildChroma(w, h);
     const cu = this.chromaU;
     const cv = this.chromaV;
-    const ru = this.rowU;
-    const rv = this.rowV;
+    const cw = this.chromaW;
+    const shift = hash32(p.noiseSeed * 40503 + 11);
+    const cox = shift % CHROMA_PAD;
+    const coy = (shift >>> 8) % CHROMA_PAD;
     const seedHash = hash32(p.noiseSeed * 2654435761);
+    // Vistas de 32 bits: una lectura y una escritura por píxel (RGBA little-endian).
+    const base32 = new Uint32Array(base.buffer, base.byteOffset, n);
+    const out32 = new Uint32Array(out.buffer, out.byteOffset, n);
+    const hasEmis = emis !== null && emis.length >= n * 3;
+    const em = hasEmis ? emis : null;
+    const doSat = sat < 0.999;
     for (let y = 0; y < h; y++) {
       const vyy = vy[y]!;
       const rowOff = hash32(y * 0x9e3779b1 + seedHash);
-      if (chroma) {
-        // Interpolación vertical del campo cromático para esta fila.
-        const gy = y / 3;
-        const y0 = gy | 0;
-        const fy = gy - y0;
-        const a = y0 * gw;
-        const b = a + gw;
-        for (let i = 0; i < gw; i++) {
-          ru[i] = cu[a + i]! + (cu[b + i]! - cu[a + i]!) * fy;
-          rv[i] = cv[a + i]! + (cv[b + i]! - cv[a + i]!) * fy;
-        }
-      }
+      const crow = (y + coy) * cw + cox;
+      const rowStart = y * w;
       for (let x = 0; x < w; x++) {
-        const p4 = (y * w + x) * 4;
+        const i = rowStart + x;
         const v = vx[x]! * vyy;
-        let lr = lut[base[p4]!]!;
-        let lg = lut[base[p4 + 1]!]!;
-        let lb = lut[base[p4 + 2]!]!;
-        if (emis) {
-          const e = (y * w + x) * 3;
-          lr += emis[e]!;
-          lg += emis[e + 1]!;
-          lb += emis[e + 2]!;
+        const px = base32[i]!;
+        let lr = lut[px & 255]!;
+        let lg = lut[(px >>> 8) & 255]!;
+        let lb = lut[(px >>> 16) & 255]!;
+        if (em) {
+          const e = i * 3;
+          lr += em[e]!;
+          lg += em[e + 1]!;
+          lb += em[e + 2]!;
         }
         let ir = lr * kr * v;
         let ig = lg * kg * v;
         let ib = lb * kb * v;
-        ir = ir >= TONE_N ? TONE_N : ir;
-        ig = ig >= TONE_N ? TONE_N : ig;
-        ib = ib >= TONE_N ? TONE_N : ib;
+        if (ir > TONE_N) ir = TONE_N;
+        if (ig > TONE_N) ig = TONE_N;
+        if (ib > TONE_N) ib = TONE_N;
         let R = tone[ir | 0]!;
         let G = tone[ig | 0]!;
         let B = tone[ib | 0]!;
         const Y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
-        if (keepLuma) luma[y * w + x] = Y;
-        clipped[y * w + x] = R >= 254 || G >= 254 || B >= 254 ? 1 : 0;
-        if (sat < 0.999) {
+        if (keepLuma) luma[i] = Y;
+        clipped[i] = R >= 254 || G >= 254 || B >= 254 ? 1 : 0;
+        if (doSat) {
           R = Y + (R - Y) * sat;
           G = Y + (G - Y) * sat;
           B = Y + (B - Y) * sat;
@@ -236,20 +253,18 @@ export class ToneMapper {
           G += nl;
           B += nl;
           if (chroma) {
-            const gx = x / 3;
-            const x0 = gx | 0;
-            const fx = gx - x0;
-            const u = (ru[x0]! + (ru[x0 + 1]! - ru[x0]!) * fx) * sc * k;
-            const vv = (rv[x0]! + (rv[x0 + 1]! - rv[x0]!) * fx) * sc * k;
+            const sk = sc * k;
+            const u = cu[crow + x]! * sk;
+            const vv = cv[crow + x]! * sk;
             R += 1.4 * vv;
             G -= 0.34 * u + 0.71 * vv;
             B += 1.77 * u;
           }
         }
-        out[p4] = R;
-        out[p4 + 1] = G;
-        out[p4 + 2] = B;
-        out[p4 + 3] = 255;
+        const r8 = R <= 0 ? 0 : R >= 255 ? 255 : (R + 0.5) | 0;
+        const g8 = G <= 0 ? 0 : G >= 255 ? 255 : (G + 0.5) | 0;
+        const b8 = B <= 0 ? 0 : B >= 255 ? 255 : (B + 0.5) | 0;
+        out32[i] = (0xff000000 | (b8 << 16) | (g8 << 8) | r8) >>> 0;
       }
     }
   }

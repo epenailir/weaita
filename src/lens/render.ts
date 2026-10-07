@@ -265,7 +265,7 @@ function drawGroundDetails(v: View) {
     if (fade <= 0) break;
     const seg = line3(v, [-hw, 0, z], [hw, 0, z]);
     if (!seg) continue;
-    ctx.strokeStyle = `rgba(20,20,22,${(0.45 * fade).toFixed(3)})`;
+    ctx.strokeStyle = `rgba(20,20,22,${(0.34 * fade).toFixed(3)})`;
     ctx.lineWidth = Math.min(2.2, Math.max(0.6, (0.02 * v.fk) / zr));
     ctx.beginPath();
     ctx.moveTo(seg[0].x, seg[0].y);
@@ -433,6 +433,15 @@ function drawBuilding(v: View, b: BuildingSpec) {
   ctx.fillStyle = css(fog(shade(b.color, 1.3)));
   ctx.fillRect(xl, yTop, xr - xl, Math.max(0.6, 0.35 * s));
 
+  // Forjados: solo cuando cada planta mide bastantes píxeles (teles)
+  if (b.floorH * s > 14) {
+    ctx.fillStyle = css(fog(shade(b.color, 0.78)), 0.75);
+    const lh = Math.max(1, 0.18 * s);
+    for (let y = b.floorH; y < b.height - 0.5; y += b.floorH) {
+      ctx.fillRect(xl, v.cy - (y - v.camY) * s - lh / 2, xr - xl, lh);
+    }
+  }
+
   const width = b.x1 - b.x0;
   const winW = Math.min(1.3, ((width - 1.6) / b.cols) * 0.55);
   const winH = Math.min(1.6, b.floorH - 1.2);
@@ -509,18 +518,28 @@ function drawTree(v: View, t: TreeSpec) {
   ctx.fillStyle = css(fog(TRUNK));
   ctx.fillRect(base.x - tw / 2, base.y - crownY * s, tw, crownY * s);
 
-  // Copa: lóbulos con volumen (luz desde la izquierda)
+  // Copa: masa oscura de fondo y lóbulos con algo de volumen (luz suave desde la izquierda)
+  const cr = t.crown * s;
+  const ccx = base.x;
+  const ccy = base.y - crownY * s;
+  ctx.fillStyle = css(fog(shade(t.tone, 0.55)));
+  ctx.beginPath();
+  ctx.ellipse(ccx, ccy + cr * 0.08, cr * 1.12, cr * 1.02, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const lit = fog(shade(mix(t.tone, GLOW_WARM, 0.08), 1.18));
+  const mid = fog(t.tone);
+  const dark = fog(shade(t.tone, 0.6));
   for (const l of t.lobes) {
     const cx = base.x + l.dx * s;
     const cy = base.y - (crownY + l.dy) * s;
     const r = Math.max(0.8, l.r * s);
-    const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.1, cx, cy, r);
-    g.addColorStop(0, css(fog(shade(mix(t.tone, GLOW_WARM, 0.12), 1.35))));
-    g.addColorStop(0.6, css(fog(t.tone)));
-    g.addColorStop(1, css(fog(shade(t.tone, 0.62))));
+    const g = ctx.createRadialGradient(cx - r * 0.4, cy - r * 0.45, r * 0.05, cx, cy, r * 1.05);
+    g.addColorStop(0, css(lit));
+    g.addColorStop(0.55, css(mid));
+    g.addColorStop(1, css(dark));
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.ellipse(cx, cy, r, r * 0.92, 0, 0, Math.PI * 2);
     ctx.fill();
   }
 }
@@ -554,14 +573,15 @@ function drawLamp(v: View, l: LampSpec) {
   ctx.beginPath();
   ctx.ellipse(hx, hy, Math.max(0.8, 0.16 * s), Math.max(0.6, 0.1 * s), 0, 0, Math.PI * 2);
   ctx.fill();
-  // Halo
-  const gr = 1.1 * s;
+  // Halo: la dispersión en la atmósfera y en la óptica es angular, así que no crece sin
+  // límite con la ampliación del tele.
+  const gr = Math.min(1.1 * s, 0.045 * v.w + 0.12 * s);
   if (gr > 1.5) {
     const prev = ctx.globalCompositeOperation;
     ctx.globalCompositeOperation = 'lighter';
     const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, gr);
-    g.addColorStop(0, `rgba(255,214,150,${(0.5 * (1 - haze)).toFixed(3)})`);
-    g.addColorStop(0.35, `rgba(255,190,120,${(0.16 * (1 - haze)).toFixed(3)})`);
+    g.addColorStop(0, `rgba(255,214,150,${(0.42 * (1 - haze)).toFixed(3)})`);
+    g.addColorStop(0.35, `rgba(255,190,120,${(0.12 * (1 - haze)).toFixed(3)})`);
     g.addColorStop(1, 'rgba(255,180,110,0)');
     ctx.fillStyle = g;
     ctx.beginPath();
