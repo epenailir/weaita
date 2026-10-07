@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+/*
+ * Lenguaje visual: visor de cámara profesional en modo oscuro.
+ * Neutros grafito con un leve sesgo frío, ámbar para lo seleccionado/activo
+ * y verde fosforescente solo para datos "en rango" (nivel, exposición correcta).
+ */
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --color-ink: #08090a;
+  --color-bg: #0b0c0e;
+  --color-panel: #111316;
+  --color-panel-2: #15181c;
+  --color-raised: #1b1f24;
+  --color-line: #23282d;
+  --color-line-strong: #323940;
+  --color-fg: #e9ebec;
+  --color-muted: #9aa3aa;
+  --color-faint: #687178;
+
+  --color-amber: #ffb224;
+  --color-amber-strong: #ffc85a;
+  --color-amber-soft: rgb(255 178 36 / 0.14);
+  --color-data: #a3ff57;
+  --color-data-soft: rgb(163 255 87 / 0.13);
+  --color-danger: #ff5a4f;
+  --color-danger-soft: rgb(255 90 79 / 0.14);
+  --color-info: #74c7ff;
+  --color-info-soft: rgb(116 199 255 / 0.13);
+  --color-peaking: #ff3b3b;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-raise: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px -12px rgb(0 0 0 / 0.7);
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    background: var(--color-bg);
+  }
+
+  html,
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100%;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.015em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: rgb(255 178 36 / 0.35);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Texto de visor: monoespaciado, cifras tabulares */
+@utility osd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* Etiqueta pequeña en mayúsculas */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-faint);
+}
+
+/* Superficie de panel con borde fino */
+@utility surface {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
+
+/* Retícula técnica sutil para fondos de laboratorio */
+@utility tech-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@keyframes osd-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.25;
+  }
+}
+
+@utility blink {
+  animation: osd-blink 0.9s steps(1, end) infinite;
+}
+
+@keyframes zebra-move {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 12px 0;
+  }
+}
+
+/* Slider continuo con estilo de visor */
+@layer components {
+  .range-osd {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 28px;
+    background: transparent;
+    cursor: ew-resize;
+  }
+  .range-osd:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .range-osd::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--track);
+  }
+  .range-osd::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--track);
+  }
+  .range-osd::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -7px;
+    border-radius: 999px;
+    background: var(--color-fg);
+    border: 3px solid var(--color-amber);
+    box-shadow: 0 0 0 4px rgb(255 178 36 / 0.15);
+  }
+  .range-osd::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--color-fg);
+    border: 3px solid var(--color-amber);
+    box-shadow: 0 0 0 4px rgb(255 178 36 / 0.15);
+  }
+  .range-osd:focus-visible {
+    outline: none;
+  }
+  .range-osd:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgb(255 178 36 / 0.45);
+  }
+  .range-osd:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px rgb(255 178 36 / 0.45);
+  }
+}
