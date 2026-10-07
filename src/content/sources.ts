@@ -259,5 +259,119 @@ export const SOURCES: Source[] = [
     "url": "https://www.kenrockwell.com/tech/ev.htm",
     "category": "Técnica",
     "note": ""
+  },
+  {
+    "title": "The Original CameraSim",
+    "url": "https://camerasim.com/original-camerasim",
+    "note": "Separa luz de escena y ajustes de cámara; exposímetro central en vivo.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Canon Canada – Outside of Auto (nota de prensa 2013)",
+    "url": "https://canon.ca/dam/about/News/Press-Releases/2013/2013-JAN-24-OUTSIDEOFAUTO-EN.pdf",
+    "note": "Aprender, jugar y desafiar: diagnóstico al tomar la foto.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "PetaPixel – Photography Mapped (Simon Roberts)",
+    "url": "https://petapixel.com/2016/12/06/simple-web-tool-teaches-beginners-use-manual-settings-dslr/",
+    "note": "Luz ambiente anclada a situaciones reales y escena frente a resultado.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Andersen Images – Exposure Simulator",
+    "url": "https://andersenimages.com/tutorials/exposure-simulator/",
+    "note": "Modos Tv/Av/M y su interdependencia.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "DIYPhotography – Nikon Lens Simulator",
+    "url": "https://www.diyphotography.net/use-nikons-lens-simulator-to-pick-your-next-lens-non-nikon-shooters-too/",
+    "note": "Ángulo de visión de 14 a 800 mm y factor de recorte.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Korben – DOF Simulator (dofsimulator.net)",
+    "url": "https://korben.info/en/dof-simulator-learn-depth-of-field.html",
+    "note": "Comparar focales con el sujeto del mismo tamaño.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "DPReview – Exposure vs. Brightening",
+    "url": "https://www.dpreview.com/articles/8148042898/exposure-vs-brightening/",
+    "note": "La exposición es luz por unidad de área; el ISO es brillo.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "DPReview – The ins and outs of ISO",
+    "url": "https://www.dpreview.com/articles/9698391814/the-ins-and-outs-of-iso-what-is-iso/",
+    "note": "Qué es realmente el ISO.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Canon – Exposure Simulation (Exp.SIM)",
+    "url": "https://cam.start.canon/en/C001/manual/html/UG-03_Shooting-2_0050.html",
+    "note": "Vista previa de exposición en el visor electrónico.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Sony α7 IV Help Guide – Basic icons displayed on the monitor",
+    "url": "https://helpguide.sony.net/ilc/2110/v1/en/contents/TP1000660234.html",
+    "note": "Disposición del OSD en una mirrorless actual.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Sony Help Guide – Zebra (70/100+ IRE)",
+    "url": "https://helpguide.sony.net/cam/1510/v1/en/contents/TP0000557853.html",
+    "note": "Avisos de sobreexposición en vivo.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Nikon Z9 – Virtual Horizon Type (verde al nivelar, tipos A/B)",
+    "url": "https://onlinemanual.nikonimglib.com/z9/en/csmd_virtual_horizon_type_203.html",
+    "note": "Nivel electrónico que se pone verde al nivelar.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Nikon Z30 – Focus peaking (niveles 1–3, colores)",
+    "url": "https://onlinemanual.nikonimglib.com/z30/en/09-05-30.html",
+    "note": "Niveles y colores del focus peaking.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "W3C WAI-ARIA APG – Slider Pattern",
+    "url": "https://www.w3.org/WAI/ARIA/apg/patterns/slider/",
+    "note": "Patrón accesible de sliders usado en los controles.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "W3C – What's New in WCAG 2.2",
+    "url": "https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/",
+    "note": "Criterios de accesibilidad aplicados.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Podolefsky, Moore y Perkins – Implicit scaffolding in interactive simulations (PhET)",
+    "url": "https://arxiv.org/pdf/1306.6544",
+    "note": "Andamiaje implícito en simulaciones educativas.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Mayer (2004) – Three-strikes rule against pure discovery learning",
+    "url": "https://facultycenter.ischool.syr.edu/wp-content/uploads/2012/02/three-strikes.pdf",
+    "note": "Descubrimiento guiado frente a exploración libre.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Bret Victor – Explorable Explanations",
+    "url": "https://worrydream.com/ExplorableExplanations/",
+    "note": "Representaciones vinculadas y documentos reactivos.",
+    "category": "Interfaz y simuladores"
+  },
+  {
+    "title": "Shute (2008) – Focus on Formative Feedback",
+    "url": "https://andymatuschak.org/files/papers/Shute%20-%202008%20-%20Focus%20on%20Formative%20Feedback.pdf",
+    "note": "Feedback formativo elaborado.",
+    "category": "Interfaz y simuladores"
   }
 ];

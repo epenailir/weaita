@@ -35,6 +35,8 @@ export interface DialProps<T extends DialOption> {
   labelSize?: number;
   /** El valor lo decide la cámara: se atenúa y muestra "AUTO". */
   auto?: boolean;
+  /** El automatismo llegó a su límite: la lectura parpadea en rojo, como en una cámara. */
+  warning?: boolean;
   disabled?: boolean;
   /** Forma de arrastre: "auto" usa giro en el borde y desplazamiento vertical en el centro. */
   dragMode?: 'auto' | 'circular' | 'vertical';
@@ -74,6 +76,7 @@ export function Dial<T extends DialOption>({
   size = 176,
   labelSize = 11,
   auto = false,
+  warning = false,
   disabled = false,
   dragMode = 'auto',
   hideLabel = false,
@@ -320,8 +323,8 @@ export function Dial<T extends DialOption>({
             dominantBaseline="central"
             fontSize={readoutSize}
             fontWeight={500}
-            fill={auto ? 'var(--color-amber)' : 'var(--color-fg)'}
-            className="osd"
+            fill={warning ? 'var(--color-danger)' : auto ? 'var(--color-amber)' : 'var(--color-fg)'}
+            className={cn('osd', warning && 'blink')}
           >
             {readout}
           </text>

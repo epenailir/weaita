@@ -1,5 +1,5 @@
-import { useCallback, useId, useRef } from 'react';
-import type { KeyboardEvent, PointerEvent, ReactNode, WheelEvent } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
+import type { KeyboardEvent, PointerEvent, ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
 export interface StopOption {
@@ -112,13 +112,25 @@ export function StopSlider({
     const c = clamp(next);
     if (c !== index) onChange(c);
   };
-  const onWheel = (e: WheelEvent<HTMLDivElement>) => {
-    if (inactive || document.activeElement !== e.currentTarget) return;
-    const d = Math.sign(e.deltaY || e.deltaX);
-    if (!d) return;
-    const c = clamp(index - d);
-    if (c !== index) onChange(c);
-  };
+  // Rueda del mouse: listener nativo no pasivo (React registra onWheel como pasivo y no
+  // permite preventDefault). Solo actúa con el control enfocado para no secuestrar el scroll.
+  const live = useRef({ index, max, onChange, inactive });
+  live.current = { index, max, onChange, inactive };
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      const { index: i, max: m, onChange: change, inactive: off } = live.current;
+      if (off || document.activeElement !== el) return;
+      const d = Math.sign(e.deltaY || e.deltaX);
+      if (!d) return;
+      e.preventDefault();
+      const c = Math.max(0, Math.min(m, i - d));
+      if (c !== i) change(c);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   const current = options[index];
   let majorCount = 0;
@@ -151,7 +163,6 @@ export function StopSlider({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onKeyDown={onKeyDown}
-        onWheel={onWheel}
         className={cn(
           'relative h-11 touch-none rounded-md',
           inactive ? 'cursor-not-allowed opacity-60' : 'cursor-ew-resize',

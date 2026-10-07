@@ -70,7 +70,11 @@ function CompIcon() {
 }
 
 function LockedIcon() {
-  return <Lock size={13} className="text-faint" aria-label="Bloqueado en este ejercicio" />;
+  return (
+    <span title="Bloqueado en este ejercicio" className="inline-flex text-faint">
+      <Lock size={13} aria-hidden="true" />
+    </span>
+  );
 }
 
 /** Etiqueta corta impresa en el dial de velocidades, como en los cuerpos Fujifilm ("250", "2″"). */
@@ -221,6 +225,7 @@ export function ExposureControls({
                 valueText={c.valueText}
                 display={c.display}
                 auto={c.auto}
+                warning={resolved.limited === c.key}
                 disabled={isLocked(c.key) && !c.auto}
                 hints={c.hints}
                 labelSize={12.5}

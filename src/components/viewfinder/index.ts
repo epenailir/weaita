@@ -11,6 +11,7 @@ export {
   METERING_INFO,
   MeteringIcon,
   StabilizationIcon,
+  TripodIcon,
   WbPresetIcon,
   wbPresetFor,
 } from './OsdIcons';

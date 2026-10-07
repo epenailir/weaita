@@ -145,6 +145,29 @@ export function StabilizationIcon({ size = 22, className, title }: IconProps) {
   );
 }
 
+/* ------------------------------------------------------------------ Trípode */
+
+/** Trípode con rótula (no existe en lucide). */
+export function TripodIcon({ size = 16, className, title }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn('shrink-0', className)}
+      {...a11y(title)}
+    >
+      <rect x="7" y="2.5" width="10" height="5" rx="1.2" />
+      <path d="M12 7.5v3.5M12 11L5 21.5M12 11l7 10.5M12 11v10.5" />
+    </svg>
+  );
+}
+
 /* ------------------------------------------------------------------ Balance de blancos */
 
 interface GlyphProps {
